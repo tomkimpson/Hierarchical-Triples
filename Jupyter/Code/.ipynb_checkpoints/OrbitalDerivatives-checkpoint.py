@@ -34,6 +34,9 @@ def edot(y,constants):
     de_Kozai = 5*K*e*(1-e**2)*a**2*(1-np.cos(I)**2)*np.sin(2*gamma)/J1 
     de_GW = -304/15 * G**3*mu1*M**2/(c**5*a**4) * e/(1-e**2)**(5/2) * (1+121*e**2/304)
 
+    
+    
+    
     return de_Kozai + de_GW
 
 

@@ -1,0 +1,52 @@
+This is BibTeX, Version 0.99d (TeX Live 2018)
+Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
+The top-level auxiliary file: mnras_template.aux
+The style file: mnras.bst
+Database file #1: paper2.bib
+Warning--I didn't find a database entry for "Cutler1994"
+Warning--I didn't find a database entry for "RobsonGIT2018"
+Warning--I didn't find a database entry for "Cornish2017"
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+You've used 2 entries,
+            2881 wiz_defined-function locations,
+            747 strings with 6456 characters,
+and the built_in function-call counts, 1041 in all, are:
+= -- 90
+> -- 66
+< -- 6
++ -- 26
+- -- 10
+* -- 124
+:= -- 163
+add.period$ -- 0
+call.type$ -- 2
+change.case$ -- 4
+chr.to.int$ -- 2
+cite$ -- 2
+duplicate$ -- 46
+empty$ -- 45
+format.name$ -- 18
+if$ -- 177
+int.to.chr$ -- 1
+int.to.str$ -- 0
+missing$ -- 2
+newline$ -- 19
+num.names$ -- 16
+pop$ -- 6
+preamble$ -- 1
+purify$ -- 8
+quote$ -- 0
+skip$ -- 31
+stack$ -- 0
+substring$ -- 70
+swap$ -- 32
+text.length$ -- 8
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 18
+warning$ -- 0
+while$ -- 16
+width$ -- 0
+write$ -- 32
+(There were 3 warnings)

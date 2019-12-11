@@ -6,6 +6,7 @@ G = 6.67e-11
 c=3e8
 def GW(orbital_motion,constants):
     
+    print ('Getting the waveform')
     t = orbital_motion[:,0]
     e = orbital_motion[:,1]
     g = orbital_motion[:,2]

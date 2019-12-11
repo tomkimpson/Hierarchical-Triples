@@ -8,13 +8,84 @@ AU = 1.49e11 #meters
 
 
 
+def get_orbital_evolution_play(m0,m1,f1,e1,beta,m2,e2,I,gamma,Tint,fs):
+    
+    print ('Getting the orbit')
+    
+    #Calculate some constants and useful values
+    K,J1,J2,mu1,M,a1 = setup(m0,m1,m2,f1,e1,e2,beta)
+
+
+    #Define time variable
+    T_seconds = Tint*365*24*3600
+    t = np.arange(0,T_seconds,1/fs)
+    
+    y = np.array((e1,gamma,a1))
+    constants = np.array((K,J1,J2,I,mu1,M))
+    
+    
+     #Get approx a
+
+    da = adot(y,constants)
+    approx_a = da*t + a1
+    
+    #MODS
+    Cprime = -64*G**3 * mu1 * M**2 / (5 * c**5)
+    ed = edot(y,constants)
+    print ('edot =',ed)
+
+    
+
+    #Get approx gamma
+    dg = gdot(y,constants)
+    approx_gamma = t*dg + gamma #+ 0.01*np.sin(dg*t)
+    
+    
+    print ('dg = ', dg)
+    print ('da = ', da)
+    
+    
+    #Approx e
+    ge = e1*(1-e1**2)**(-5/2) * (1 + 121*e1**2/304)
+    he = ge/(e1*(1-e1**2))
+    psi = get_psi(approx_a,approx_gamma,da,dg,a1,gamma,t)
+    AA = 5*K*(1-np.cos(I)**2)/J1
+    Cprime = -64*G**3 * mu1 * M**2 / (5 * c**5)
+    
+    print ('Crpime = ',Cprime)
+
+    CC = np.log(e1) - 0.5*np.log(1-e1**2)
+    
+    alpha_KL = AA*psi + CC
+    alpha_GW = -19/36 * Cprime*he/da * (approx_a**(-3) - a1**(-3))
+
+    alpha = alpha_KL + alpha_GW
+
+    
+    approx_e = np.exp(alpha)/np.sqrt(1+np.exp(2*alpha))
+
+    
+    #output
+    out = np.zeros((len(t),4))
+    out[:,0] = t
+    out[:,1] = approx_e
+    out[:,2] = approx_gamma
+    out[:,3] = approx_a
+    
+    
+    #out[:,0] = t
+    #out[:,1] = e1
+    #out[:,2] = gamma
+    #out[:,3] = a1
+    
+    
+    return out
 
 
 
 
 
-
-def get_orbital_evolution_numerical(m0,m1,f1,e1,beta,m2,e2,I,gamma,Tint,Tres):
+def get_orbital_evolution_numerical(m0,m1,f1,e1,beta,m2,e2,I,gamma,Tint,fs):
      
     #Calculate some constants and useful values
     K,J1,J2,mu1,M,a1 = setup(m0,m1,m2,f1,e1,e2,beta)
@@ -26,7 +97,7 @@ def get_orbital_evolution_numerical(m0,m1,f1,e1,beta,m2,e2,I,gamma,Tint,Tres):
     
     
     #Call RK solver
-    output = RungeKutta(yn,constants,T_seconds,Tres)
+    output = RungeKutta(yn,constants,T_seconds,fs)
     
     print ('Numerical evolution has completed')
     
@@ -35,53 +106,24 @@ def get_orbital_evolution_numerical(m0,m1,f1,e1,beta,m2,e2,I,gamma,Tint,Tres):
 
 def get_orbital_evolution(m0,m1,f1,e1,beta,m2,e2,I,gamma,Tint,fs):
     
-    print ('Get the constants')
+    print ('Getting the orbit')
+    
     #Calculate some constants and useful values
     K,J1,J2,mu1,M,a1 = setup(m0,m1,m2,f1,e1,e2,beta)
 
 
     #Define time variable
-    print ('Set the time')
     T_seconds = Tint*365*24*3600
     t = np.arange(0,T_seconds,1/fs)
   
     
-    
-    #------Cumbersome way to get the same time points as in the numerical case
-   # T_seconds = Tint*365*24*3600
-   # trange = np.arange(0,T_seconds,1/fs)
-    
-    
-    #trange= np.linspace(0,T_seconds,Tres)
-  #  h = trange[1] - trange[0]
-  #  t=0
-  #  nsteps = int(T_seconds/h)
-    
-  #  out = np.zeros((nsteps,4))
-                   
-    #counter = 0
-   # out[counter,0] = t
-    #counter = counter +1
-                               
-                   
-    
-    #while t < T_seconds:
-        
-       # t = t + h
-       # if counter < nsteps:
-          #  out[counter,0] = t
-          #  counter = counter + 1
-    #------Cumbersome way to get the same time points as in the numerical case
-
-    
-    
-    print ('Get some approximations')
-    t = out[:,0]
     y = np.array((e1,gamma,a1))
     constants = np.array((K,J1,J2,I,mu1,M))
     
     
+
      #Get approx a
+
     da = adot(y,constants)
     approx_a = da*t + a1
     
@@ -89,6 +131,8 @@ def get_orbital_evolution(m0,m1,f1,e1,beta,m2,e2,I,gamma,Tint,fs):
     #Get approx gamma
     dg = gdot(y,constants)
     approx_gamma = t*dg + gamma
+    
+
     
     #Approx e
     ge = e1*(1-e1**2)**(-5/2) * (1 + 121*e1**2/304)
@@ -107,8 +151,6 @@ def get_orbital_evolution(m0,m1,f1,e1,beta,m2,e2,I,gamma,Tint,fs):
     
     approx_e = np.exp(alpha)/np.sqrt(1+np.exp(2*alpha))
 
-    
-    
     
     #output
     out = np.zeros((len(t),4))
@@ -141,13 +183,13 @@ def derivs(y,constants):
 
 
 
-def RungeKutta(yn,constants,Tint,Tres):
+def RungeKutta(yn,constants,Tint,fs):
     
     #Setup timing precision
-    trange= np.linspace(0,Tint,Tres)
-    h = trange[1] - trange[0]
+    h = 1/fs
     t = 0
-    nsteps = int(Tint/h)
+    nsteps = int(Tint*fs) + 1
+    
     
     #Define output array
     out = np.zeros((nsteps,4)) #t,e,gamma,a
@@ -158,6 +200,8 @@ def RungeKutta(yn,constants,Tint,Tres):
     out[counter,3] = yn[2] 
     counter = counter + 1
 
+    
+    print (h, Tint)
     while t < Tint:
         
     

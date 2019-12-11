@@ -1,24 +1,70 @@
 from __future__ import division
 import numpy as np
 import matplotlib.pyplot as plt
-
+import scipy.integrate
 
 def overlap(data1,data2):
     
-    t = data1[:,0]
-    hplus = data1[:,1]
-    hcross = data1[:,2]
+    #Get data in Fourier regime
+    f1,hp1,hc1 = FT(data1)
+    f2,hp2,hc2 = FT(data2)
+  
+    f = f1
+    
+    #Noise
+    S = noise(f)
+    
+    
+    
+    hplusN = hp1
+    hcrossN = hc1
+    
+    hN = np.sqrt(abs(hplusN)**2 + abs(hcrossN)**2) #numerical
+    hsig1 = hN
+    normN = 2 * scipy.integrate.simps( (hN * np.conj(hN) + np.conj(hN) * hN)/(S),f)
+    hN = hN / np.sqrt(normN)
+    #overlap = 2 * scipy.integrate.simps( (hN * np.conj(hN) + np.conj(hN) * hN)/(S),f)
+
+
+    hplusA = hp2
+    hcrossA = hc2
+    
+    hA = np.sqrt(abs(hplusA)**2 + abs(hcrossA)**2) #numerical
+    hsig2 = hA
+    normA = 2 * scipy.integrate.simps( (hA * np.conj(hA) + np.conj(hA) * hA)/(S),f)
+    hA = hA / np.sqrt(normA)
+    
+    
+    overlap = 2 * scipy.integrate.simps( (hN * np.conj(hA) + np.conj(hN) * hA)/(S),f)
+
+ 
+
+
+    
+    print ('overlap = ', overlap)
+    
+    
+    return f,hsig1,hsig2, np.sqrt(S)
+
+    
+    
+    
+    
+def FT(data):    
+    
+    t = data[:,0]
+    hplus = data[:,1]
+    hcross = data[:,2]
     
     
     dt = t[1] - t[0]
     fs = 1/dt
-   
+    print (fs)
 
     #Get the frequencies
     f = np.fft.rfftfreq(t.size,dt)
 
     
-
     #Take the FT
     hp = dt*np.fft.rfft(hplus)
     hc = dt*np.fft.rfft(hcross)
@@ -31,33 +77,7 @@ def overlap(data1,data2):
     hc = hc[1:]
     f = f[1:]
     
-    #Noise
-    print (min(f),max(f),len(f))
-    #f = np.linspace(1e-6,1,10000)
-    S = noise(f)
-    
- 
-
-    #output
-    overlap = 0.50
-    hsig = np.sqrt(hp**2 + hc**2)
-    
-    return f,hsig, np.sqrt(S)
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    return f, hp, hc
     
     
     
