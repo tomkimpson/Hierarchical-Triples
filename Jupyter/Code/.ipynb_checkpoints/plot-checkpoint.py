@@ -3,7 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.transforms import Bbox
 from EvalF import Fn
+from OrbitalMotion import setup
+from OrbitalDerivatives import *
 import sys
+from scipy.optimize import curve_fit
+
 
 
 AU = 1.49e11 #meters
@@ -26,8 +30,8 @@ def plot_compare_motion(data1,data2):
     axR = [ax4,ax5,ax6]
     
     
-    data_to_figure(data1,ax)
-    data_to_figure(data2,ax)
+    data_to_figure(data1,ax,'k')
+    data_to_figure(data2,ax,'C0')
     differences(data1,data2,axR)
     
 
@@ -59,11 +63,27 @@ def plot_compare_motion(data1,data2):
     ax1.set_ylabel('$e$', fontsize = fs)
     ax2.set_ylabel(r'$\gamma$', fontsize = fs)
     ax3.set_ylabel(r'$a$ [AU]', fontsize = fs)
+    
+    
+    t = data1[:,0]
+    Ebar,omega,C,D = 1.00125323e+00, 7.67874108e-06, 1.75180001e+00, 1.62237598e-03
+    AA = 8.334053747464898e-24
+    a0 = data1[0,3]
+
+    
+    alpha = AA*a0**2*(t*D - Ebar*np.cos(omega*t+C)/omega)
+    alpha0 = AA*a0**2*(- Ebar*np.cos(C)/omega)
+    
+    norm = data1[0,1] - np.exp(alpha0)/np.sqrt(1+np.exp(2*alpha0))
+    
+    enew = np.exp(alpha)/np.sqrt(1+np.exp(2*alpha)) + norm 
+    print ('norm = ',norm, alpha0, data1[0,1])
+    ax1.plot(t / (365*24*3600),enew,c='g')
 
 
     
     
-def data_to_figure(data,ax):
+def data_to_figure(data,ax,c):
     
     t = data[:,0] / (365*24*3600)
     e1 = data[:,1]
@@ -71,9 +91,9 @@ def data_to_figure(data,ax):
     a1 = data[:,3] / AU
     
     
-    ax[0].plot(t,e1)
-    ax[1].plot(t,g1)
-    ax[2].plot(t,a1)
+    ax[0].plot(t,e1,c=c)
+    ax[1].plot(t,np.sin(2*g1),c=c)
+    ax[2].plot(t,a1,c=c)
 
     
     
@@ -110,12 +130,13 @@ def plot_motion(data1):
     ax6 = plt.subplot2grid((3,2), (2,1),sharex=ax4)
     
     
-    
+
     
     t = data1[:,0] #/ (365*24*3600)
     e1 = data1[:,1]
     g1 = data1[:,2]
     a1 = data1[:,3] #/ AU
+    
 
     
     maxe = max(e1)
@@ -133,11 +154,14 @@ def plot_motion(data1):
     omega = 2*np.pi/TT 
     
     mid = maxe - AmpE
-    print ('Eeval:', maxe, mine, maxe-mine,mid,mid-e1[0])
-
     bit = mid-e1[0]
-    print (mid, e1[0],bit)
 
+
+    
+  
+    
+    
+    
     dphi = np.arcsin(bit/AmpE)
     
     
@@ -148,13 +172,9 @@ def plot_motion(data1):
     D1 = e1[0] - AmpE*np.sin(-dphi)
     new_e = AmpE * np.sin(omega * t - dphi) + D1 #+de*t
     
-    print (new_e[0])
+    
+    print ('Old E = ', AmpE, omega, dphi, D1)
 
-    
-    print (AmpE)
-    
-    print ('EMAX:', max(e1), max(new_e), e1[0]+AmpE)
-    
     #Now approximate a
     Cprime = -6.752505469155555e+23
     
@@ -166,32 +186,30 @@ def plot_motion(data1):
     new_a = (4*(Cprime*FNT + D))**(1/4)
 
 
+    #Alternative e
+    alpha = -3.834951969714108e-06 * 0.7499999999999999 / (2*dg) * np.cos(2*g1)
+    alpha0 = -3.834951969714108e-06 * 0.7499999999999999 / (2*dg) * np.cos(2*g1[0])
+    D = e1[0] - np.exp(alpha0) / np.sqrt(1 + np.exp(2*alpha0))
+    alt_e = np.exp(alpha) / np.sqrt(1 + np.exp(2*alpha)) + D
 
-    #Fn = 4.88431 + 31.6462*(-0.5 + t*de + e1[0] + AmpE* np.sin(t*omega)) + 142.394*(-0.5 + t*de + e1[0] + AmpE*np.sin(t*omega))**2
-    #new_a = (4*(Cprime*Fn + D))**(1/4)
-    #D = a1[0]**4 - 4*Cprime*(109.748*amp - 284.788*amp*e1[0])/omega
-    #INT_fe = (109.748*amp*np.cos(omega*t) - 284.788*amp*e1[0]*np.cos(omega*t) - 35.5985*amp**2 * np.sin(2*omega*t))/omega
     
+    
+    #approximate gamma
 
-    #new_a = (4*Cprime*INT_fe + D)**(1/4) 
-    
-    #fe = (1-new**2)**(-7/2) * (1 + 73*new**2 / 24 + 37*new**4 / 96)
-    #ampA = max(fe) - min(fe)
-    
-    
-    #Cprime =  (4* 6.752505469155555e+23)**(1/4)
-    #Cprime = 1
-    #ampA = ampA * Cprime
-    #print (ampA)
+
+    AA = -1.2964812848441645e-06
+    omegaG = 9.442538769413205e-06
+    dphiG = -1.446545897286351 
+    CG = 5.102320927698959e-06
+    D = g1[0] - AA/omegaG * np.sin(dphiG)
+    gap = AA/omegaG * np.sin(omegaG*t + dphiG) + CG*t + D
+
     
     
-    #da =  -0.016267506889648106
-    #a1 = a1 - (da*t + a1[0])
     
-    #new_a = da*t + a1[0] #+ ampA*np.sin(2*np.pi/TT * t)
-    #print ('ampA', ampA)
-    
-    
+    ax2.plot(t,gap,c='k')
+
+    ax1.plot(t,alt_e, linestyle = '--', c='k')    
     ax1.plot(t,new_e,c='r')
     ax1.plot(t,e1)
     ax2.plot(t,g1)
@@ -370,3 +388,67 @@ def plot_GW_frequency(f,h1,h2, S):
 
 
     ax1.tick_params(axis='both', which='major', labelsize=fs)
+
+    
+    
+    
+    
+    
+    
+    
+    
+def func_cos(t,g,om,d,bit):
+    return g*om*np.cos(om*t + bit) + d
+    
+    
+def plot_derivatives(data,constants,analytics):
+    fig = plt.figure(figsize=(14,10))
+    ax1 = plt.subplot2grid((1,1), (0,0))
+    
+    #Numerical
+    t = data[:,0]
+    e = data[:,1]
+    g = data[:,2]
+    a = data[:,3]
+    y = np.array((e,g,a))
+    dg = gdot(y,constants)
+    
+    
+    omega = 2*dg[0]
+    print ('omega =',omega)
+    test = np.sin(omega*t + 2*g[0])
+    ax1.plot(t,test,'--', c='r')
+    
+    ga = analytics[:,2]
+    
+    output=np.zeros((len(g),3)) 
+    output[:,0] = t
+    output[:,1] = np.sin(2*g)
+    output[:,2] = test
+    np.savetxt('example.txt',output)
+    
+    ax1.plot(t,np.sin(2*g),c='C0')
+    ax1.plot(t,np.sin(2*ga),c='k')
+    
+    
+    #Analytical
+    #e = analytics[:,1]
+    ga = analytics[:,2]
+    #a = analytics[:,3]
+    #y = np.array((e,g,a))
+    #dg_approx = gdot(y,constants)
+    
+
+    
+    #fs = 30
+    #ax1.tick_params(axis='both', which='major', labelsize=fs)
+    #ax1.plot(t,dg)
+    #ax1.plot(t,dg_approx)
+    #ax1.plot(t,func_cos(t, *popt))
+
+    
+    
+    
+    
+    
+    

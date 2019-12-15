@@ -1,5 +1,6 @@
 from __future__ import division
 import numpy as np
+import sys
 c = 3e8
 G = 6.67e-11
 Msolar = 2e30
@@ -33,11 +34,32 @@ def edot(y,constants):
     
     de_Kozai = 5*K*e*(1-e**2)*a**2*(1-np.cos(I)**2)*np.sin(2*gamma)/J1 
     de_GW = -304/15 * G**3*mu1*M**2/(c**5*a**4) * e/(1-e**2)**(5/2) * (1+121*e**2/304)
+    
+    #print ('Big A a^2 =', 5*K*a**2*(1-np.cos(I)**2)/J1, e)
+    #sys.exit()
+
+
+    return de_Kozai + de_GW
+
+
+def edot_linear(y,constants):
+    #Only the oscillatory Kozai bit of edot
+    e = y[0]
+    gamma = y[1]
+    a = y[2]
+    
+    K = constants[0]
+    J1 = constants[1]
+    I = constants[3]
+    mu1 = constants[4]
+    M = constants[5]
+    
+    de_Kozai = 5*K*e*(1-e**2)*a**2*(1-np.cos(I)**2)*np.sin(2*gamma)/J1 
+    de_GW = -304/15 * G**3*mu1*M**2/(c**5*a**4) * e/(1-e**2)**(5/2) * (1+121*e**2/304)
 
     
     
-    
-    return de_Kozai + de_GW
+    return de_GW
 
 
 def gdot(y,constants):
@@ -58,6 +80,11 @@ def gdot(y,constants):
     dg_part2 = (1 - e**2 + 5*e**2 * np.cos(gamma)**2)*np.cos(I)
     dg_PN=3/(c**2*a*(1-e**2)) * (G*M/a)**(3/2)
     dg_KL = 2*K*a**2*(dg_part1/J1 + dg_part2/J2)
+
+    #print (3/(c**2) * (G*M/1)**(3/2))
+    #dg_KL + dg_PN    
     
     
-    return dg_KL + dg_PN    
+
+    
+    return dg_PN + dg_KL

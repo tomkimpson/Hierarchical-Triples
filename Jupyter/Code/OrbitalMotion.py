@@ -1,6 +1,7 @@
 from __future__ import division
 import numpy as np
 from OrbitalDerivatives import *
+from EvalF import Fn, Periodicity
 c = 3e8
 G = 6.67e-11
 Msolar = 2e30
@@ -8,63 +9,106 @@ AU = 1.49e11 #meters
 
 
 
-def get_orbital_evolution_play(m0,m1,f1,e1,beta,m2,e2,I,gamma,Tint,fs):
+def get_orbital_evolutionV2(m0,m1,f1,e1,beta,m2,e2,I,gamma,Tint,fs,numerical_data):
     
     print ('Getting the orbit')
+
+    
     
     #Calculate some constants and useful values
     K,J1,J2,mu1,M,a1 = setup(m0,m1,m2,f1,e1,e2,beta)
+    
 
 
     #Define time variable
     T_seconds = Tint*365*24*3600
     t = np.arange(0,T_seconds,1/fs)
     
+    
+    
+    
     y = np.array((e1,gamma,a1))
     constants = np.array((K,J1,J2,I,mu1,M))
     
-    
-     #Get approx a
+    #Get some info from the numerical data
+    AmpE,omega,C,D = extract(numerical_data)
 
-    da = adot(y,constants)
-    approx_a = da*t + a1
     
-    #MODS
+    #Get some derivative info based on initial conditions
+    dg = gdot(y,constants)
+    de = edot_linear(y,constants)
+    
+    
+    
+    #Get some of the numerical data to construct an ansatz for e
+    #tnum = numerical_data[:,0] 
+    enum = numerical_data[:,1]
+    #gnum = numerical_data[:,2]
+    #anum = numerical_data[:,3]
+    #y = np.array((enum,gnum,anum))
+    
+    
+    
+    #--------------12/12/2019--------------------START
+    
+    #AmpG = -1.2964812848441645e-06
+    #omegaG = 9.442538769413205e-06
+    #dphiG = -1.446545897286351 
+    #CG = 5.102320927698959e-06
+    
+    #Tbar = Periodicity(AmpG,omegaG,dphiG,CG,t)
+    #print (Tbar[0])
+    #omega = 2*np.pi/Tbar
+    #sys.exit()
+    
+    
+    
+    #--------------12/12/2019--------------------END
+    
+    #AmpE = (max(enum) - min(enum))/2 #Amplitude of the KL oscillations. This will need changing if linear decay since we just want the ocillatory part
+    MidE = max(enum)- AmpE #Midline of the sinusoid - need this since the oscillations are not symmetric about the initial value
+
+    
+    #omega = 9.758172054030664e-06
+    #omega = 9.75592729011698e-06
+    #omega = 9.76685021529054e-06
+    #omega_NOKL = 7.678741082785004e-06
+    #omega = omega_NOKL
+
+    
+
+    #omega = 2*dg#Get the frequency/period of the oscillations - dictated by sin(2 gamma) = 0 condition
+    #dphi = np.arcsin((MidE - e1)/AmpE) #Phase shift w.r.t midline symmetry
+    
+    #dphi = 2.48556859e-01
+    
+    #D1 = e1 - AmpE*np.sin(-dphi) #normalisation
+    #approx_e = AmpE * np.sin(omega * t - dphi) + D1 +de*t #first approximation for e
+    approx_e = AmpE * np.sin(omega*t + C) + D + de*t
+    
+    
+    #print ('params for approx_e:', AmpE, omega, dphi, D1, de)
+    
+    
+    #Get approx a
+    D1 = D
+    dphi = -C
     Cprime = -64*G**3 * mu1 * M**2 / (5 * c**5)
-    ed = edot(y,constants)
-    print ('edot =',ed)
+    FN0 = Fn(AmpE,de,MidE,omega,0,D1,dphi)
+    FNT = Fn(AmpE,de,MidE,omega,t,D1,dphi)
+    D = a1**4 / 4 - Cprime*FN0
+    approx_a = (4*(Cprime*FNT + D))**(1/4)
 
     
 
     #Get approx gamma
     dg = gdot(y,constants)
     approx_gamma = t*dg + gamma #+ 0.01*np.sin(dg*t)
+    print ('GETTIGN DG = ', dg)
     
     
-    print ('dg = ', dg)
-    print ('da = ', da)
-    
-    
-    #Approx e
-    ge = e1*(1-e1**2)**(-5/2) * (1 + 121*e1**2/304)
-    he = ge/(e1*(1-e1**2))
-    psi = get_psi(approx_a,approx_gamma,da,dg,a1,gamma,t)
-    AA = 5*K*(1-np.cos(I)**2)/J1
-    Cprime = -64*G**3 * mu1 * M**2 / (5 * c**5)
-    
-    print ('Crpime = ',Cprime)
 
-    CC = np.log(e1) - 0.5*np.log(1-e1**2)
-    
-    alpha_KL = AA*psi + CC
-    alpha_GW = -19/36 * Cprime*he/da * (approx_a**(-3) - a1**(-3))
 
-    alpha = alpha_KL + alpha_GW
-
-    
-    approx_e = np.exp(alpha)/np.sqrt(1+np.exp(2*alpha))
-
-    
     #output
     out = np.zeros((len(t),4))
     out[:,0] = t
@@ -72,12 +116,7 @@ def get_orbital_evolution_play(m0,m1,f1,e1,beta,m2,e2,I,gamma,Tint,fs):
     out[:,2] = approx_gamma
     out[:,3] = approx_a
     
-    
-    #out[:,0] = t
-    #out[:,1] = e1
-    #out[:,2] = gamma
-    #out[:,3] = a1
-    
+
     
     return out
 
@@ -287,3 +326,30 @@ def sma(M,f):
 def ang_mom(m1,m2,a):
     M = m1+m2
     return m1*m2 * np.sqrt(G*a/M)
+
+
+
+def trig_function(t,A,omega,C,D):
+    return A*np.sin(omega*t + C) + D
+
+from scipy.optimize import curve_fit
+
+def extract(data):
+    t = data[:,0]
+    e = data[:,1]
+    
+    
+    #Try to fit e numerical using a simple trig function 
+    f = e
+    offset = (f.max() + f.min()) / 2
+    y_shifted = f - offset
+    p0 = (
+    (f.max() - f.min()) / 2,
+    np.pi * np.sum(y_shifted[:-1] * y_shifted[1:] < 0) / (t.max() - t.min()),
+    0,
+    offset
+    )
+
+    #do a scipy fit
+    popt, pcov = curve_fit(trig_function, t,f,p0=p0)
+    return popt
