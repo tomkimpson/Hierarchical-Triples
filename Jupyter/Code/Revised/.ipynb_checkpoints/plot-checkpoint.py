@@ -82,19 +82,19 @@ def plot_motion(data1):
 def plot_compare_motion(data1,data2):
     
     fig = plt.figure(figsize=(24,10))
-    ax1 = plt.subplot2grid((4,2), (0,0))
-    ax2 = plt.subplot2grid((4,2), (1,0), sharex=ax1)
-    ax3 = plt.subplot2grid((4,2), (2,0), sharex=ax1)
-    ax4 = plt.subplot2grid((4,2), (3,0),sharex=ax1)
+    ax1 = plt.subplot2grid((3,2), (0,0))
+    ax2 = plt.subplot2grid((3,2), (1,0), sharex=ax1)
+    ax3 = plt.subplot2grid((3,2), (2,0), sharex=ax1)
+
     
-    ax5 = plt.subplot2grid((4,2), (0,1))
-    ax6 = plt.subplot2grid((4,2), (1,1))
-    ax7 = plt.subplot2grid((4,2), (2,1))
-    ax8 = plt.subplot2grid((4,2), (3,1))
+    ax5 = plt.subplot2grid((3,2), (0,1))
+    ax6 = plt.subplot2grid((3,2), (1,1))
+    ax7 = plt.subplot2grid((3,2), (2,1))
+
     
     
-    ax = [ax1,ax2,ax3,ax4]
-    axR = [ax5,ax6,ax7,ax8]
+    ax = [ax1,ax2,ax3]
+    axR = [ax5,ax6,ax7]
     
     
     
@@ -113,31 +113,43 @@ def plot_compare_motion(data1,data2):
 
     plt.setp(ax1.get_xticklabels(), visible=False)
     plt.setp(ax2.get_xticklabels(), visible=False)
-    plt.setp(ax3.get_xticklabels(), visible=False)
+   
     
     plt.setp(ax5.get_xticklabels(), visible=False)
     plt.setp(ax6.get_xticklabels(), visible=False)
-    plt.setp(ax7.get_xticklabels(), visible=False)
+ 
 
 
     ax1.tick_params(axis='both', which='major', labelsize=fs)
     ax2.tick_params(axis='both', which='major', labelsize=fs)
     ax3.tick_params(axis='both', which='major', labelsize=fs)
-    ax4.tick_params(axis='both', which='major', labelsize=fs)
+    
     ax5.tick_params(axis='both', which='major', labelsize=fs)
     ax6.tick_params(axis='both', which='major', labelsize=fs)
     ax7.tick_params(axis='both', which='major', labelsize=fs)
-    ax8.tick_params(axis='both', which='major', labelsize=fs)
 
 
-    ax4.set_xlabel('t [years]',fontsize=fs)
-    ax8.set_xlabel('t [years]',fontsize=fs)
+    ax3.ticklabel_format(useOffset=False)
+    ax3.set_xlabel('t [years]',fontsize=fs)
+    ax7.set_xlabel('t [years]',fontsize=fs)
 
 
 
     ax1.set_ylabel('$e$', fontsize = fs)
-    ax2.set_ylabel(r'$\gamma$', fontsize = fs)
-    ax3.set_ylabel(r'$a$ [AU]', fontsize = fs)
+    ax2.set_ylabel(r'$\sin (2\gamma)$', fontsize = fs)
+    ax3.set_ylabel(r'$a$ [mAU]', fontsize = fs)
+    
+    
+    lim = 0.024
+    ax5.set_ylim(-lim,lim)
+    ax6.set_ylim(-lim,lim)
+    ax7.set_ylim(-lim,lim)
+    
+    path = '/Users/tomkimpson/PhD/PI/PI_Work/Manuscript/figures/'
+    plt.savefig(path+'compare_canonical.png',dpi=300)
+        
+    
+
     
     
     
@@ -147,16 +159,15 @@ def data_to_figure(data,ax,c):
     e1 = data[:,1]
     g1 = data[:,2]
     a1 = data[:,3] / AU
-    J1 = data[:,4] /data[0,4]
-    
+    a1 =a1 * 1e3 #milli AU
+
     
     
     
     ax[0].plot(t,e1,c=c)
     ax[1].plot(t,np.sin(2*g1),c=c)  
-    #ax[1].plot(t,g1,c=c)  
     ax[2].plot(t,a1,c=c)
-    ax[3].plot(t,J1,c=c)
+
         
     
     
@@ -170,18 +181,22 @@ def differences(data,data1,ax):
     de = (data[:,1] - data1[:,1]) / data1[:,1]
     
     dg = (np.sin(data[:,2]) - np.sin(data1[:,2])) #/ np.sin(data1[:,2])
+    #dg = (data[:,2] - data1[:,2]) #/ np.sin(data1[:,2])
+    
           
     da = (data[:,3] - data1[:,3]) / data1[:,3]
     
+    print ('The average percentage error in a was:', np.mean(da)*100)
+    
           
           
-    dJ = (data[:,4] - data1[:,4]) / data1[:,4]
+ 
     
     
     ax[0].plot(t,de)
     ax[1].plot(t,dg)
     ax[2].plot(t,da)
-    ax[3].plot(t,dJ)
+
     
     
     
@@ -365,7 +380,7 @@ def plot_GW(data1,f1):
 
     ax3.plot(torb,hplus,c='C0')
     ax4.plot(torb,hcross,c='C1')
-    ax3.scatter(torb, hplus)
+    
 
     
     fs = 25
@@ -399,6 +414,10 @@ def plot_GW(data1,f1):
     t_upper = 5 
     ax3.set_xlim(0,t_upper)
     plt.subplots_adjust(hspace=-0.01)
+    
+    
+    path = '/Users/tomkimpson/PhD/PI/PI_Work/Manuscript/figures/'
+    plt.savefig(path+'GW_canonical.png',dpi=300)
     
 
     
@@ -440,12 +459,12 @@ def plot_GW(data1,f1):
     
     
 def plot_GW_frequency(f,h1,h2, S):
-    fig = plt.figure(figsize=(14,10))
+    fig = plt.figure(figsize=(15,15))
     ax1 = plt.subplot2grid((1,1), (0,0))
     
-    ax1.loglog(f,h1)
-    ax1.loglog(f,h2)
-    ax1.loglog(f,S)   
+    ax1.loglog(f,h1, 'C2')
+    ax1.loglog(f,h2,'C1')
+    ax1.loglog(f,S, C='C0')   
 
     
     fs = 25
@@ -455,5 +474,14 @@ def plot_GW_frequency(f,h1,h2, S):
 
 
     ax1.tick_params(axis='both', which='major', labelsize=fs)
+    ax1.set_ylabel('$h(f) $', fontsize = fs)
+    ax1.set_xlabel(r'f [Hz]', fontsize = fs)
+    ax1.tick_params(axis='both', which='major', labelsize=fs)
+    
+    path = '/Users/tomkimpson/PhD/PI/PI_Work/Manuscript/figures/'
+    plt.savefig(path+'GW_overlap.png',dpi=300)
 
+    
+    
+    
     

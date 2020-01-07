@@ -4,7 +4,7 @@ from setup import *
 from derivatives import *
 import sys
 from EvalF import Fn
-
+import time
 
 
 def univeral_constants():
@@ -30,7 +30,6 @@ def numerical_orbital_evolution(m0,m1,m2,a1,e1,g1,J1,e2,a2,I,fs,Tint):
     output = RungeKutta(yn,const,fs,Tint)
     
     #output
-    #output[:,2] = np.sin(2*output[:,2]) #Convert from gamma to sin 2 gamma
     print ('Numerical orbital evolution has completed with fs = ', fs, ' Hz and Tobs = ', Tint, ' years')
     return output,const
 
@@ -52,9 +51,14 @@ def analytical_orbital_evolution(fit_data,Tint,fs,const):
     
 
     #Get the eccentricity behaviour
+    tstart = time.time()
     A,B,omega,offset = extract(fit_data,1)
+    tend = time.time()
+    print ('The eccentricity fit completed in', tend-tstart,'seconds')
     e_approx = A*np.sin(omega*t) +B*np.cos(omega*t)  + offset 
+
     
+
     
 
     
@@ -222,7 +226,7 @@ def doube_trig_function(t,A,B,omega,offset):
 def extract(data,index):
     t = data[:,0]
     f = data[:,index] 
-    
+    print ('extract ecc')
     
     func = doube_trig_function
     offset = (f.max() + f.min()) / 2
@@ -235,7 +239,12 @@ def extract(data,index):
         offset
          )
         
+   
+        
+        
     popt, pcov = curve_fit(func, t,f,p0=p0)
+    
+    
     return popt
     
     
@@ -262,6 +271,16 @@ def extract2(t,f):
     B_D = -2.17565784e-05
     gamma_f = 2.17209725e-05
     gamma_g = 6.85614205e-01
+    
+    
+    
+    #H= 1e-5
+   # B_A = 1e-5
+   # B_omega = 1e-5
+   # B_offset = 1e-1
+   # B_D = 1e-5
+   # gamma_f = 1e-5
+   # gamma_g = 1e-1
     
 
     p0 = (B_A, B_omega, B_offset, B_D,gamma_f, gamma_g,H)   

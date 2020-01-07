@@ -3,50 +3,49 @@ Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
 The top-level auxiliary file: mnras_template.aux
 The style file: mnras.bst
 Database file #1: paper2.bib
-Warning--I didn't find a database entry for "Cutler1994"
 Warning--I didn't find a database entry for "RobsonGIT2018"
 Warning--I didn't find a database entry for "Cornish2017"
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
-You've used 2 entries,
+You've used 3 entries,
             2881 wiz_defined-function locations,
-            747 strings with 6456 characters,
-and the built_in function-call counts, 1041 in all, are:
-= -- 90
-> -- 66
-< -- 6
-+ -- 26
-- -- 10
-* -- 124
-:= -- 163
+            757 strings with 6758 characters,
+and the built_in function-call counts, 1536 in all, are:
+= -- 136
+> -- 97
+< -- 10
++ -- 39
+- -- 14
+* -- 184
+:= -- 237
 add.period$ -- 0
-call.type$ -- 2
-change.case$ -- 4
-chr.to.int$ -- 2
-cite$ -- 2
-duplicate$ -- 46
-empty$ -- 45
-format.name$ -- 18
-if$ -- 177
+call.type$ -- 3
+change.case$ -- 6
+chr.to.int$ -- 3
+cite$ -- 3
+duplicate$ -- 69
+empty$ -- 67
+format.name$ -- 28
+if$ -- 265
 int.to.chr$ -- 1
 int.to.str$ -- 0
-missing$ -- 2
-newline$ -- 19
-num.names$ -- 16
-pop$ -- 6
+missing$ -- 3
+newline$ -- 22
+num.names$ -- 24
+pop$ -- 8
 preamble$ -- 1
-purify$ -- 8
+purify$ -- 12
 quote$ -- 0
-skip$ -- 31
+skip$ -- 47
 stack$ -- 0
-substring$ -- 70
-swap$ -- 32
-text.length$ -- 8
+substring$ -- 104
+swap$ -- 48
+text.length$ -- 12
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 18
+type$ -- 27
 warning$ -- 0
-while$ -- 16
+while$ -- 24
 width$ -- 0
-write$ -- 32
-(There were 3 warnings)
+write$ -- 42
+(There were 2 warnings)

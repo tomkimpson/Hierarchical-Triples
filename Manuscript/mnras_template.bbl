@@ -17,6 +17,12 @@
   {mn@eprint@\@tempb}{\@tempb:\@tempc}{\expandafter \expandafter \csname
   mn@eprint@\@tempb\endcsname \expandafter{\@tempc}}}
 
+\bibitem[\protect\citeauthoryear{{Cutler} \& {Flanagan}}{{Cutler} \&
+  {Flanagan}}{1994}]{Cutler1994}
+{Cutler} C.,  {Flanagan} {\'E}.~E.,  1994, \mn@doi [\prd]
+  {10.1103/PhysRevD.49.2658}, \href
+  {https://ui.adsabs.harvard.edu/abs/1994PhRvD..49.2658C} {49, 2658}
+
 \bibitem[\protect\citeauthoryear{{Randall} \& {Xianyu}}{{Randall} \&
   {Xianyu}}{2018}]{Randall2018}
 {Randall} L.,  {Xianyu} Z.-Z.,  2018, \mn@doi [\apj]
