@@ -32,13 +32,18 @@ def numerical_orbital_evolution(m0,m1,m2,a1,e1,g1,J1,e2,a2,I,fs,Tint):
     #output
     #output[:,2] = np.sin(2*output[:,2]) #Convert from gamma to sin 2 gamma
     print ('Numerical orbital evolution has completed with fs = ', fs, ' Hz and Tobs = ', Tint, ' years')
-    return output
+    return output,const
 
-def analytical_orbital_evolution(fit_data,Tint,fs):
+def analytical_orbital_evolution(fit_data,Tint,fs,const):
     
-    #Get some constants of the motion
-    #const = constants(m0,m1,m2,e2,a2,I)
-    C = -6.752505469155556e+23
+    #Extract the relevant constants
+    #K, J2, C,A,eta,I,Lambda
+    K = const[0]
+    J2 = const[1]
+    C = const[2]
+    I = const[5]
+    lam = const[6]
+
     
     #time
     T_seconds = Tint*365*24*3600
@@ -48,54 +53,46 @@ def analytical_orbital_evolution(fit_data,Tint,fs):
 
     #Get the eccentricity behaviour
     A,B,omega,offset = extract(fit_data,1)
-    e_approx = A*np.sin(omega*t) +B*np.cos(omega*t)  + offset #+ delta*t
+    e_approx = A*np.sin(omega*t) +B*np.cos(omega*t)  + offset 
     
-    #Semi major axis
     
 
+    
+    #Semi major axis
     F0 = Fn(A,B,omega,offset,0)
     Fbar = Fn(A,B,omega,offset,t)
     
     normalisation = fit_data[0,3]**4 / 4 - C*F0
     
     a_approx = (4*C*Fbar + 4*normalisation)**(1/4)
-    #a_approx = np.ones(len(t)) * fit_data[0,3] #constant GW
+
     
     #Precession of periastron
-    g_approx = extract2(fit_data,2,t) 
+    #---First get the analytical derivative of gamma
+    t1 = fit_data[:,0]
+    e1 = fit_data[:,1]
+    g1 = fit_data[:,2]
+    a1 = fit_data[:,3] 
+    J1 = fit_data[:,4] 
+    u = 1 - e1**2
+        
+    NSP = 2*K*a1**2 * u * (2/J1 + np.cos(I)/J2) + lam * a1**(-2.5) * u**(-1)
+    SP = 10*K*a1**2*(e1**2*np.cos(I)/J2 - (u-np.cos(I)**2)/J1)
     
+    gderiv = NSP + SP*np.sin(g1)**2
     
+    print(len(gderiv) ,len(t), len(fit_data))
     
-    #------- failed attempt at foueri decom - too computationally challenging
-    
-    
-    #xx = fit_data[:,0]
-   # yy = fit_data[:,2]
-   # period = 2*np.pi/omega
+    #---Now fit the derivative with a parametric function
+    B_A, B_omega, B_offset, B_D,gamma_f, gamma_g,H = extract2(t1,gderiv)
+    #We can directly integrate this function
+    integration_constant = g1[0] - integral(B_A, B_omega, B_offset, B_D,gamma_f, gamma_g,H,0) 
+    g_approx = integral(B_A, B_omega, B_offset, B_D,gamma_f, gamma_g,H,t) + integration_constant
     
 
-   # freqs = np.fft.fftfreq(len(xx), 1/fs)
-   # Fk = np.ones(len(xx))
     
-   # for k in range(len(Fk)):
-   #     for j in range(len(yy)):
-            
-   #         ar = yy[j]*np.exp(-1j * 2*np.pi * freqs[k]*yy[j])/fs
-   #         Fk[k] = np.sum(ar)
-        
-        
-   # fx = np.ones(len(xx))
-   # for k in range(len(xx)):
-    #    for j in range(len(Fk)):
-    #        ar = Fk[j] * np.exp(1j * 2*np.pi *freqs[j]*xx[k])*fs
-    #        fx[k] = np.sum(ar)
-    
-    
-   
-  
-    
-  
 
+    print (g_approx)
     
     
     #output
@@ -226,6 +223,7 @@ def extract(data,index):
     t = data[:,0]
     f = data[:,index] 
     
+    
     func = doube_trig_function
     offset = (f.max() + f.min()) / 2
     y_shifted = f - offset
@@ -243,38 +241,51 @@ def extract(data,index):
     
  
 
-
-
-
-
     
     
 # --- TESTING---  
 
 
-def simple_trig(t,omega,offset):
-    return omega*t + offset
+def AdvancedTrig(t,B_A, B_omega, B_offset, B_D,gamma_f, gamma_g,H):
+    B = B_A*np.sin(B_omega*t + B_offset) +B_D
+    s2g = np.sin(gamma_f*t + gamma_g)**2
+    return H + B*s2g
     
-def extract2(data,index,t1):
-    t = data[:,0]
-    f = data[:,index] 
+def extract2(t,f):
+    print ('Extract for double trig func')
+    func = AdvancedTrig
     
-    func = simple_trig
-    offset = (f.max() + f.min()) / 2
-    y_shifted = f - offset
-    p0 = (
-         np.pi * np.sum(y_shifted[:-1] * y_shifted[1:] < 0) / (t.max() - t.min()),
-        offset
-         )
-        
+    H= 3.631335880308346e-05
+    B_A = 2.50885879e-05
+    B_omega = 4.32315349e-05
+    B_offset = -1.76843846e-01 
+    B_D = -2.17565784e-05
+    gamma_f = 2.17209725e-05
+    gamma_g = 6.85614205e-01
+    
+
+    p0 = (B_A, B_omega, B_offset, B_D,gamma_f, gamma_g,H)   
     popt, pcov = curve_fit(func, t,f,p0=p0)
-    print ('popt for gamma:', popt)
-    return func(t1, *popt)
+
+    #return func(t, *popt)
+    return popt
 
 
-
-
-
-
+def integral(A,omega,C,D,f,g,H,t):
+    
+    part1 = -A*np.cos(C+t*(omega-2*f)-2*g)/(4*(2*f-omega))
+    
+    part2 =  A*np.cos(C+t*(omega+2*f)+2*g)/(4*(2*f+omega))
+    
+    part3 = 0.5*A*(np.sin(C)*np.sin(t*omega)/omega - np.cos(C)*np.cos(omega*t)/omega)
+    
+    part4 = D*(f*t + g)/(2*f)
+    
+    part5 = -D*np.sin(2*(f*t + g))/(4*f)
+    
+    part6 = H*t
+    
+   
+    return part1 + part2 +part3 + part4 + part5 + part6
 
 # --- TESTING---

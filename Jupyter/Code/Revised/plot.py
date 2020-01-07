@@ -157,19 +157,7 @@ def data_to_figure(data,ax,c):
     #ax[1].plot(t,g1,c=c)  
     ax[2].plot(t,a1,c=c)
     ax[3].plot(t,J1,c=c)
-    
-
-    CC = 1/np.tan(g1[0])
-    gtest = np.arctan(1/ (CC - t))
-    
-    print (gtest)
-    
-    ax[1].plot(t,np.sin(2*gtest))
-    
-
-
-    
-    
+        
     
     
     
