@@ -30,6 +30,9 @@ def plot_compare_motion(data1,data2):
     axR = [ax4,ax5,ax6]
     
     
+    
+    
+    
     data_to_figure(data1,ax,'k')
     data_to_figure(data2,ax,'C0')
     differences(data1,data2,axR)
@@ -64,22 +67,6 @@ def plot_compare_motion(data1,data2):
     ax2.set_ylabel(r'$\gamma$', fontsize = fs)
     ax3.set_ylabel(r'$a$ [AU]', fontsize = fs)
     
-    
-    t = data1[:,0]
-    Ebar,omega,C,D = 1.00125323e+00, 7.67874108e-06, 1.75180001e+00, 1.62237598e-03
-    AA = 8.334053747464898e-24
-    a0 = data1[0,3]
-
-    
-    alpha = AA*a0**2*(t*D - Ebar*np.cos(omega*t+C)/omega)
-    alpha0 = AA*a0**2*(- Ebar*np.cos(C)/omega)
-    
-    norm = data1[0,1] - np.exp(alpha0)/np.sqrt(1+np.exp(2*alpha0))
-    
-    enew = np.exp(alpha)/np.sqrt(1+np.exp(2*alpha)) + norm 
-    print ('norm = ',norm, alpha0, data1[0,1])
-    ax1.plot(t / (365*24*3600),enew,c='g')
-
 
     
     
@@ -92,7 +79,17 @@ def data_to_figure(data,ax,c):
     
     
     ax[0].plot(t,e1,c=c)
-    ax[1].plot(t,np.sin(2*g1),c=c)
+    
+    ax[1].plot(t,g1,c=c)
+    
+    #if c == 'k':
+      #  ax[1].plot(t,g1,c=c)
+    #else:
+        #ax[1].plot(t,np.sin(2*g1),c=c)
+    
+    
+    
+    
     ax[2].plot(t,a1,c=c)
 
     
@@ -101,13 +98,14 @@ def data_to_figure(data,ax,c):
 def differences(data,data1,ax):
     
     t = data[:,0]  / (365*24*3600)
-    de = (data[:,1] - data1[:,1])
-    dg = (data[:,2] - data1[:,2])
+    de = (data[:,1] - data1[:,1]) / data1[:,1]
+    dg = (data[:,2] - np.sin(2*data1[:,2]))
     da = (data[:,3] - data1[:,3]) / AU
     
+    
     ax[0].plot(t,de)
-    ax[1].plot(t,da)
-    ax[2].plot(t,dg)
+    ax[1].plot(t,dg)
+    ax[2].plot(t,da)
     
     
     
@@ -132,7 +130,7 @@ def plot_motion(data1):
     
 
     
-    t = data1[:,0] #/ (365*24*3600)
+    t = data1[:,0] / (365*24*3600)
     e1 = data1[:,1]
     g1 = data1[:,2]
     a1 = data1[:,3] #/ AU
@@ -144,77 +142,16 @@ def plot_motion(data1):
     ax1.axhline(maxe,linestyle='--')
     ax1.axhline(mine,linestyle='--')
     
-    de = -1.0130297198586707e-11
-    dg = 4.7285366544678975e-06
-    da =  -0.016267506889648106
-
-    
-    AmpE = (maxe - mine)/2
-    TT = np.pi / dg
-    omega = 2*np.pi/TT 
-    
-    mid = maxe - AmpE
-    bit = mid-e1[0]
 
 
-    
-  
-    
-    
-    
-    dphi = np.arcsin(bit/AmpE)
-    
-    
-    
-    #First order approx for e
-    #AmpE = 0.12
-    
-    D1 = e1[0] - AmpE*np.sin(-dphi)
-    new_e = AmpE * np.sin(omega * t - dphi) + D1 #+de*t
-    
-    
-    print ('Old E = ', AmpE, omega, dphi, D1)
-
-    #Now approximate a
-    Cprime = -6.752505469155555e+23
-    
-    FN0 = Fn(AmpE,de,0.50,omega,0,D1,dphi)
-    FNT = Fn(AmpE,de,0.50,omega,t,D1,dphi)
-   
-    D = a1[0]**4 / 4 - Cprime*FN0
-    
-    new_a = (4*(Cprime*FNT + D))**(1/4)
 
 
-    #Alternative e
-    alpha = -3.834951969714108e-06 * 0.7499999999999999 / (2*dg) * np.cos(2*g1)
-    alpha0 = -3.834951969714108e-06 * 0.7499999999999999 / (2*dg) * np.cos(2*g1[0])
-    D = e1[0] - np.exp(alpha0) / np.sqrt(1 + np.exp(2*alpha0))
-    alt_e = np.exp(alpha) / np.sqrt(1 + np.exp(2*alpha)) + D
-
-    
-    
-    #approximate gamma
 
 
-    AA = -1.2964812848441645e-06
-    omegaG = 9.442538769413205e-06
-    dphiG = -1.446545897286351 
-    CG = 5.102320927698959e-06
-    D = g1[0] - AA/omegaG * np.sin(dphiG)
-    gap = AA/omegaG * np.sin(omegaG*t + dphiG) + CG*t + D
-
-    
-    
-    
-    ax2.plot(t,gap,c='k')
-
-    ax1.plot(t,alt_e, linestyle = '--', c='k')    
-    ax1.plot(t,new_e,c='r')
     ax1.plot(t,e1)
     ax2.plot(t,g1)
     ax3.plot(t,a1)
-    ax3.plot(t,new_a, c='r')
+
     
     ax4.plot(t,e1)
     ax5.plot(t,g1)

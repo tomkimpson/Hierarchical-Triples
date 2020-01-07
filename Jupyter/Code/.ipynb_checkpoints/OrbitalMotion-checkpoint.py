@@ -1,7 +1,11 @@
 from __future__ import division
 import numpy as np
 from OrbitalDerivatives import *
-from EvalF import Fn, Periodicity
+from EvalF import Fn, edotINTEGRAL
+from numpy import sin as Sin
+from numpy import cos as Cos
+
+
 c = 3e8
 G = 6.67e-11
 Msolar = 2e30
@@ -19,100 +23,116 @@ def get_orbital_evolutionV2(m0,m1,f1,e1,beta,m2,e2,I,gamma,Tint,fs,numerical_dat
     K,J1,J2,mu1,M,a1 = setup(m0,m1,m2,f1,e1,e2,beta)
     
 
+    
+
 
     #Define time variable
     T_seconds = Tint*365*24*3600
     t = np.arange(0,T_seconds,1/fs)
-    
-    
-    
+        
     
     y = np.array((e1,gamma,a1))
     constants = np.array((K,J1,J2,I,mu1,M))
     
     #Get some info from the numerical data
-    AmpE,omega,C,D = extract(numerical_data)
+    AmpE,omega,C,D = extract(numerical_data,'osc',1)
+    
+    A1, om1, C1, A2, om2, C2, D = extract3(numerical_data,1)
+    eALT = A1*np.sin(om1*t + C1) +A2*np.cos(om2*t + C2) + D
 
+    
+    
+
+    
+
+    #A1, om1, C1, A2, om2, C2,A3, om3, C3, D = extract3(numerical_data,2)
+    #gALT = A1*np.sin(om1*t + C1) +A2*np.cos(om2*t + C2)+ A3*np.cos(om3*t + C3)+ D
+
+    
+    A1, om1, C1, A2, om2, C2,A3, om3, C3, D = extract3(numerical_data,2)
+    gALT = A1*np.sin(om1*t + C1) +A2*np.cos(om2*t + C2)+ D
+
+    
+    
+    #Can we fit gamma?
+    OmG, DPHI = extract2(numerical_data[:,0],np.sin(2*numerical_data[:,2]),simple_trig)
+    approx_gamma=(OmG*t + DPHI)/2
+    
+    
+    #-------------17/12/2019-----------START
+    alpha = 10*K*a1**2*np.cos(I)*(1/J1 + 1/J2)
+    CC = -1/np.tan(gamma)
+    
+    
+    LinearGamma = np.arctan(1/(-alpha*t - CC))
+    
+
+    
+    
+    
+    
+     #-------------17/12/2019-----------END
+    
+    
+   
+
+    
+    
+    
+    
+    
+    
     
     #Get some derivative info based on initial conditions
     dg = gdot(y,constants)
     de = edot_linear(y,constants)
     
-    
-    
-    #Get some of the numerical data to construct an ansatz for e
-    #tnum = numerical_data[:,0] 
-    enum = numerical_data[:,1]
-    #gnum = numerical_data[:,2]
-    #anum = numerical_data[:,3]
-    #y = np.array((enum,gnum,anum))
-    
-    
-    
-    #--------------12/12/2019--------------------START
-    
-    #AmpG = -1.2964812848441645e-06
-    #omegaG = 9.442538769413205e-06
-    #dphiG = -1.446545897286351 
-    #CG = 5.102320927698959e-06
-    
-    #Tbar = Periodicity(AmpG,omegaG,dphiG,CG,t)
-    #print (Tbar[0])
-    #omega = 2*np.pi/Tbar
-    #sys.exit()
-    
-    
-    
-    #--------------12/12/2019--------------------END
-    
-    #AmpE = (max(enum) - min(enum))/2 #Amplitude of the KL oscillations. This will need changing if linear decay since we just want the ocillatory part
-    MidE = max(enum)- AmpE #Midline of the sinusoid - need this since the oscillations are not symmetric about the initial value
-
-    
-    #omega = 9.758172054030664e-06
-    #omega = 9.75592729011698e-06
-    #omega = 9.76685021529054e-06
-    #omega_NOKL = 7.678741082785004e-06
-    #omega = omega_NOKL
-
-    
-
-    #omega = 2*dg#Get the frequency/period of the oscillations - dictated by sin(2 gamma) = 0 condition
-    #dphi = np.arcsin((MidE - e1)/AmpE) #Phase shift w.r.t midline symmetry
-    
-    #dphi = 2.48556859e-01
-    
-    #D1 = e1 - AmpE*np.sin(-dphi) #normalisation
-    #approx_e = AmpE * np.sin(omega * t - dphi) + D1 +de*t #first approximation for e
+    #Approximate e(t)
     approx_e = AmpE * np.sin(omega*t + C) + D + de*t
     
-    
-    #print ('params for approx_e:', AmpE, omega, dphi, D1, de)
-    
-    
-    #Get approx a
-    D1 = D
-    dphi = -C
+    #Approximate da
+    MidE = max(numerical_data[:,1])- AmpE #Midline of the sinusoid - need this since the oscillations are not symmetric about the initial value
     Cprime = -64*G**3 * mu1 * M**2 / (5 * c**5)
-    FN0 = Fn(AmpE,de,MidE,omega,0,D1,dphi)
-    FNT = Fn(AmpE,de,MidE,omega,t,D1,dphi)
-    D = a1**4 / 4 - Cprime*FN0
-    approx_a = (4*(Cprime*FNT + D))**(1/4)
+    FN0 = Fn(AmpE,de,MidE,omega,0,D,C)
+    FNT = Fn(AmpE,de,MidE,omega,t,D,C)
+    Da = a1**4 / 4 - Cprime*FN0
+    approx_a = (4*(Cprime*FNT + Da))**(1/4)
+    
+    #We could also fit a line to the jagged motion as:
+    adot, a0 = extract(numerical_data,'lin',3)
+    approx_a = adot*t + a0
+    approx_a = a1 #No GW emmision
 
     
-
-    #Get approx gamma
-    dg = gdot(y,constants)
-    approx_gamma = t*dg + gamma #+ 0.01*np.sin(dg*t)
-    print ('GETTIGN DG = ', dg)
+    BigA = 5*K*(1-np.cos(I)**2)/J1
+    DD = e1 - edotINTEGRAL(AmpE,omega,OmG,DPHI,adot,a0,BigA,0)
     
+    newE = edotINTEGRAL(AmpE,omega,OmG,DPHI,adot,a0,BigA,t) + DD
+    
+    
+    
+    
+
+    #Get approx gamma, again using a parametric fit
+    gd, g0 = extract(numerical_data,'lin',2)
+    #gradient = gd*(1+0.1*np.cos(eALT))
+    
+    y = np.array((0.8,gamma,a1))
+    dgBIGE = gdot(y,constants)
+    y = np.array((0.35,gamma,a1))
+    dgSMALLE = gdot(y,constants)
+    
+    #print ('dg = ', dgBIGE,dgSMALLE)
+    #sys.exit()
+    approx_gamma = dg*t + gamma
+
     
 
 
     #output
     out = np.zeros((len(t),4))
     out[:,0] = t
-    out[:,1] = approx_e
+    out[:,1] = eALT
     out[:,2] = approx_gamma
     out[:,3] = approx_a
     
@@ -128,7 +148,7 @@ def get_orbital_evolution_numerical(m0,m1,f1,e1,beta,m2,e2,I,gamma,Tint,fs):
      
     #Calculate some constants and useful values
     K,J1,J2,mu1,M,a1 = setup(m0,m1,m2,f1,e1,e2,beta)
-    
+
     #Set up for runge Kutta
     yn = np.array((e1,gamma,a1))
     constants = np.array((K,J1,J2,I,mu1,M))
@@ -178,6 +198,8 @@ def get_orbital_evolution(m0,m1,f1,e1,beta,m2,e2,I,gamma,Tint,fs):
     he = ge/(e1*(1-e1**2))
     psi = get_psi(approx_a,approx_gamma,da,dg,a1,gamma,t)
     AA = 5*K*(1-np.cos(I)**2)/J1
+
+    
     Cprime = -64*G**3 * mu1 * M**2 / (5 * c**5)
 
     CC = np.log(e1) - 0.5*np.log(1-e1**2)
@@ -226,8 +248,14 @@ def RungeKutta(yn,constants,Tint,fs):
     
     #Setup timing precision
     h = 1/fs
+    
+    trange = np.arange(0,Tint,h)
+    tfinal = trange[-1]    
+    
     t = 0
-    nsteps = int(Tint*fs) + 1
+    nsteps = int(tfinal*fs) + 1
+
+    
     
     
     #Define output array
@@ -240,8 +268,8 @@ def RungeKutta(yn,constants,Tint,fs):
     counter = counter + 1
 
     
-    print (h, Tint)
-    while t < Tint:
+    
+    while t < tfinal:
         
     
 
@@ -258,7 +286,8 @@ def RungeKutta(yn,constants,Tint,fs):
    
     
         t = t + h
-        if counter < nsteps:
+        
+        if counter <= nsteps-1:
             out[counter,0] = t
             out[counter,1] = yn[0]
             out[counter,2] = yn[1]  
@@ -266,7 +295,7 @@ def RungeKutta(yn,constants,Tint,fs):
         
         
             counter = counter + 1    
-    
+
     return out
 
 
@@ -329,27 +358,174 @@ def ang_mom(m1,m2,a):
 
 
 
+
+def doube_trig_function(t,A1,omega1,C1,A2,omega2,C2,D):
+    return A1*np.sin(omega1*t + C1) +A2*np.cos(omega2*t + C2) + D
+
+def triple_trig_function(t,A1,omega1,C1,A2,omega2,C2,A3, omega3,C3,D):
+    return A1*np.sin(omega1*t + C1) +A2*np.cos(omega2*t + C2)+A3*np.cos(omega3*t + C3) + D
+
+
 def trig_function(t,A,omega,C,D):
     return A*np.sin(omega*t + C) + D
 
+def linear_function(t,A,B):
+    return A*t + B
+
+def simple_trig(t,omega,dphi):
+    return np.sin(omega*t+dphi)
+
+def simple_trigHIGHER(t,omega,dphi,omega2):
+    return np.sin(omega*t+dphi+omega2*t**2)
+
+
+def simple_trig2(t,omega,dphi,omega2, dphi2):
+    return np.sin(omega*t+dphi) + np.cos(omega2 + dphi2)
+
+
+def LinOsc(t,omega,dphi,Aprime,omegaprime):
+    return np.sin(omega*t+dphi + Aprime*np.sin(omegaprime*t))
+
+
+
+
 from scipy.optimize import curve_fit
 
-def extract(data):
+def extract(data, method,index):
     t = data[:,0]
-    e = data[:,1]
+    f = data[:,index] 
     
+    if method == 'osc':
+        
+        func = trig_function
+        offset = (f.max() + f.min()) / 2
+        y_shifted = f - offset
+        p0 = (
+        (f.max() - f.min()) / 2,
+        np.pi * np.sum(y_shifted[:-1] * y_shifted[1:] < 0) / (t.max() - t.min()),
+        0,
+        offset
+        )
+    if method == 'lin':
+        func = linear_function
+        p0 = (1e-6,f[0])
+
     
-    #Try to fit e numerical using a simple trig function 
-    f = e
+
+
+
+    #do a scipy fit
+    popt, pcov = curve_fit(func, t,f,p0=p0)
+    return popt
+
+
+def extract2(x,f,func):
+    
     offset = (f.max() + f.min()) / 2
     y_shifted = f - offset
     p0 = (
-    (f.max() - f.min()) / 2,
-    np.pi * np.sum(y_shifted[:-1] * y_shifted[1:] < 0) / (t.max() - t.min()),
-    0,
-    offset
-    )
+        np.pi * np.sum(y_shifted[:-1] * y_shifted[1:] < 0) / (x.max() - x.min()),
+        0
+        )
+        
+    popt, pcov = curve_fit(func, x,f,p0=p0)
 
-    #do a scipy fit
-    popt, pcov = curve_fit(trig_function, t,f,p0=p0)
     return popt
+
+def extract22(x,f):
+    func = LinOsc
+    
+    offset = (f.max() + f.min()) / 2
+    y_shifted = f - offset
+    p0 = (
+        np.pi * np.sum(y_shifted[:-1] * y_shifted[1:] < 0) / (x.max() - x.min()),
+        0,
+        0.1,
+        1e-4
+        )
+        
+    popt, pcov = curve_fit(func, x,f,p0=p0)
+
+    return popt
+
+
+
+
+
+
+def extractHIGHER(x,f,func):
+    
+    offset = (f.max() + f.min()) / 2
+    y_shifted = f - offset
+    p0 = (
+        np.pi * np.sum(y_shifted[:-1] * y_shifted[1:] < 0) / (x.max() - x.min()),
+        0,
+        np.sqrt(np.pi * np.sum(y_shifted[:-1] * y_shifted[1:] < 0) / (x.max() - x.min()))
+        )
+        
+    popt, pcov = curve_fit(func, x,f,p0=p0)
+
+    return popt
+
+
+def extract3(data,index):
+    t = data[:,0]
+    f = data[:,index] 
+    
+    
+    
+    if index == 1:
+        func = doube_trig_function
+        offset = (f.max() + f.min()) / 2
+        y_shifted = f - offset
+        p0 = (
+        (f.max() - f.min()) / 2,
+        np.pi * np.sum(y_shifted[:-1] * y_shifted[1:] < 0) / (t.max() - t.min()),
+        0,
+        (f.max() - f.min()) / 2,
+        np.pi * np.sum(y_shifted[:-1] * y_shifted[1:] < 0) / (t.max() - t.min()),
+        0,
+        offset
+        )
+    
+    
+    if index == 2:
+        f = np.sin(2*f)
+        func = triple_trig_function
+        offset = (f.max() + f.min()) / 2
+        y_shifted = f - offset
+        p0 = (
+        (f.max() - f.min()) / 2,
+        np.pi * np.sum(y_shifted[:-1] * y_shifted[1:] < 0) / (t.max() - t.min()),
+        0,
+        (f.max() - f.min()) / 2,
+        np.pi * np.sum(y_shifted[:-1] * y_shifted[1:] < 0) / (t.max() - t.min()),
+        0,
+        (f.max() - f.min()) / 2,
+        np.pi * np.sum(y_shifted[:-1] * y_shifted[1:] < 0) / (t.max() - t.min()),
+        0,
+        offset
+        )
+
+    
+    popt, pcov = curve_fit(func, t,f,p0=p0)
+    return popt
+    
+    
+    
+    
+        
+def extract4(x,f):
+    
+    func = LinOsc
+    offset = (f.max() + f.min()) / 2
+    y_shifted = f - offset
+    p0 = (1e-6,f[0],
+        (max(np.sin(2*f)) - min(np.sin(2*f))) / 2,
+        1e-6,
+        0
+        )
+        
+    popt, pcov = curve_fit(func, x,f,p0=p0)
+    return popt
+    

@@ -1,0 +1,101 @@
+#Extract B
+    B_approx = extract2(t, BB) 
+    
+    
+    
+        #ax1.plot(t,B_approx, label='Bapprox')
+    
+    #Extract sin ^2 gamma
+    
+    B_A = 2.50885879e-05
+    B_omega = 4.32315349e-05
+    B_offset = -1.76843846e-01 
+    B_D = -2.17565784e-05
+    
+    gamma_f = 2.17209725e-05
+    gamma_g = 6.85614205e-01
+
+    H = AA[0]
+    print ('H=',H)
+    
+    
+    #3.49141549e-05
+    
+    B_A, B_omega, B_offset, B_D,gamma_f, gamma_g,H = 3.44086379e-05,  4.33231658e-05, -1.80951168e-01, -2.55871807e-05, 2.17055561e-05,  6.85423232e-01,  3.49141549e-05
+    
+    
+    integration_constant = g1[0] - integral(B_A,B_omega,B_offset,B_D,gamma_f,gamma_g,H,0)
+    approx_gamma = integral(B_A,B_omega,B_offset,B_D,gamma_f,gamma_g,H,t) + integration_constant
+    approx_gamma1 = gamma_f*t + gamma_g
+    
+    
+    
+    
+    
+    
+    
+    
+   
+   
+
+    #How does B do?
+    #ax1.plot(t,BB,label='BB')
+    #ax1.plot(t,B_approx,label = 'BB_approx')
+    
+    #How does A do?
+    #ax1.plot(t,np.ones(len(t))*H)
+    #ax1.plot(t,AA)
+    
+    #How does gamma do?
+    #ax1.plot(t,np.sin(g1)**2, c='g')
+    #ax1.plot(t, np.sin(gamma_f*t + gamma_g)**2,c='k')
+    
+    
+    #How does B sin gamma do?
+    #ax1.plot(t,BB*np.sin(g1)**2,c='g')
+    #ax1.plot(t,B_approx*np.sin(gamma_f*t + gamma_g)**2,c='k')    
+    
+    #How does the compiund do?
+    #ax1.plot(t,AA + BB*np.sin(g1)**2,c='g')
+    #ax1.plot(t,H + B_approx*np.sin(gamma_f*t + gamma_g)**2,c='k' )
+    
+    
+    
+    
+    
+    
+    #Some approximation methods
+
+
+    #ax1.plot(t,y,c='C1',linestyle='--')
+    #plt.savefig('examplefig2.png', dpi=300)
+    #ax1.set_xlim(0,1e5)
+
+
+
+    #ax1.plot(t,AA,label='AA')
+    #ax1.plot(t,BB,label='BB')
+    #ax1.plot(t,BB *np.sin(g1)**2, label = 'B sin g')
+    #ax1.plot(t, AA + BB*np.sin(g1)**2, label = 'deriv')
+   
+    from scipy.integrate import simps
+    
+    target_t = 25e4
+    idx = (np.abs(t - target_t)).argmin()
+    #ax1.axvline(t[idx], c='0.5', linestyle = '--')
+    
+    I1 = simps(y[:idx], t[:idx])
+    I2 = simps(gdot_approx[:idx], t[:idx])
+    
+    print (I1, I2)
+    
+    #ax2.scatter(t[idx], I1)
+    #ax2.scatter(t[idx], I2)
+
+
+    
+    #ax2.plot(t,approx_gamma, c='k')
+    #approx_gamma1 = gamma_f*t + gamma_g
+    #ax2.plot(t,approx_gamma1,c='r')
+    
+    #ax1.legend()
