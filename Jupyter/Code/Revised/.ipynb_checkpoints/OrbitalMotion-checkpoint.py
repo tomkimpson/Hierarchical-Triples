@@ -85,7 +85,6 @@ def analytical_orbital_evolution(fit_data,Tint,fs,const):
     
     gderiv = NSP + SP*np.sin(g1)**2
     
-    print(len(gderiv) ,len(t), len(fit_data))
     
     #---Now fit the derivative with a parametric function
     B_A, B_omega, B_offset, B_D,gamma_f, gamma_g,H = extract2(t1,gderiv)
@@ -95,8 +94,11 @@ def analytical_orbital_evolution(fit_data,Tint,fs,const):
     
 
     
+    
+    #g_approx = extract3(fit_data,2,t) #linear fit to gamma
+    
 
-    print (g_approx)
+
     
     
     #output
@@ -128,7 +130,7 @@ def RungeKutta(yn,const,fs,Tint):
     Ts = Tint*365*24*3600
     trange = np.arange(0,Ts,h)
     tfinal = trange[-1]    
-    
+    print ('Final t = ', tfinal)
     t = 0
     nsteps = int(tfinal*fs) + 1
 
@@ -219,7 +221,11 @@ def constants(m0,m1,m2,e2,a2,I):
 
     
     
-from scipy.optimize import curve_fit   
+from scipy.optimize import curve_fit 
+
+
+
+# fitting functions for the eccentricity
 def doube_trig_function(t,A,B,omega,offset):
     return A*np.sin(omega*t) + B*np.cos(omega*t)  + offset
     
@@ -227,6 +233,9 @@ def extract(data,index):
     t = data[:,0]
     f = data[:,index] 
     print ('extract ecc')
+    
+    sigma = np.ones(len(t))
+    sigma[[0, -1]] = 0.01
     
     func = doube_trig_function
     offset = (f.max() + f.min()) / 2
@@ -242,13 +251,118 @@ def extract(data,index):
    
         
         
-    popt, pcov = curve_fit(func, t,f,p0=p0)
+    popt, pcov = curve_fit(func, t,f,p0=p0,sigma=sigma)
     
     
     return popt
     
+#fittinf functions for the eccentricity with a time dependence
+
+
+
+
+def analytical_split(fit_data,t,const):
+    
+
+    
+    #Extract the relevant constants
+    #K, J2, C,A,eta,I,Lambda
+    K = const[0]
+    J2 = const[1]
+    C = const[2]
+    I = const[5]
+    lam = const[6]
+
+    
+    #Get the eccentricity behaviour
+    tstart = time.time()
+    A,B,omega,offset = extract(fit_data,1)
+    tend = time.time()
+    print ('The eccentricity fit completed in', tend-tstart,'seconds')
+    OmT = omega*t
+    e_approx = A*np.sin(OmT) +B*np.cos(OmT)  + offset 
+    print ('Calculated e(t) to high resolution')
     
  
+
+    
+    #Semi major axis
+    a1 = fit_data[:,3] 
+    
+    
+    F0 = Fn(A,B,omega,offset,t[0])
+    Fbar = Fn(A,B,omega,offset,t)
+    
+    normalisation = fit_data[0,3]**4 / 4 - C*F0
+    
+    print ('Now calculating a(t) to high resolution')
+
+    a_approx = (4*C*Fbar + 4*normalisation)**(1/4)
+    
+    
+
+    
+
+    
+    #Precession of periastron
+    #---First get the analytical derivative of gamma
+    t1 = fit_data[:,0]
+    e1 = fit_data[:,1]
+    g1 = fit_data[:,2]
+    a1 = fit_data[:,3] 
+    J1 = fit_data[:,4] 
+    u = 1 - e1**2
+        
+    NSP = 2*K*a1**2 * u * (2/J1 + np.cos(I)/J2) + lam * a1**(-2.5) * u**(-1)
+    SP = 10*K*a1**2*(e1**2*np.cos(I)/J2 - (u-np.cos(I)**2)/J1)
+    
+    gderiv = NSP + SP*np.sin(g1)**2
+    
+    
+    #---Now fit the derivative with a parametric function
+    tstart = time.time()
+    B_A, B_omega, B_offset, B_D,gamma_f, gamma_g,H = extract2(t1,gderiv)
+    tend = time.time()
+    print ('The gamma derivative fit completed in', tend-tstart,'seconds')
+    #We can directly integrate this function
+    integration_constant = g1[0] - integral(B_A, B_omega, B_offset, B_D,gamma_f, gamma_g,H,t[0]) 
+    
+    print ('Now calculating gamma(t) to high resolution')
+    g_approx = integral(B_A, B_omega, B_offset, B_D,gamma_f, gamma_g,H,t) + integration_constant
+    
+
+    
+    print ('gN=', g1[0], g1[-1])
+    print ('gA=', g_approx[0], g_approx[-1])
+    
+    #g_approx = extract3(fit_data,2,t) #linear fit to gamma
+    
+
+
+    
+    
+    #output
+    out = np.ones((len(t),5))
+    out[:,0] = t
+    out[:,1] = e_approx
+    out[:,2] = g_approx
+    out[:,3] = a_approx
+    #out[:,4] = fit_data[:,4]
+
+
+
+    
+    #output
+    
+    return out
+
+
+
+
+
+
+
+
 
     
     
@@ -308,3 +422,26 @@ def integral(A,omega,C,D,f,g,H,t):
     return part1 + part2 +part3 + part4 + part5 + part6
 
 # --- TESTING---
+
+
+
+#old---
+
+def simple_trig(t,omega,offset):
+    return omega*t + offset
+    
+def extract3(data,index,t1):
+    t = data[:,0]
+    f = data[:,index] 
+    
+    func = simple_trig
+    offset = (f.max() + f.min()) / 2
+    y_shifted = f - offset
+    p0 = (
+         np.pi * np.sum(y_shifted[:-1] * y_shifted[1:] < 0) / (t.max() - t.min()),
+        offset
+         )
+        
+    popt, pcov = curve_fit(func, t,f,p0=p0)
+    print ('popt for gamma:', popt)
+    return func(t1, *popt)

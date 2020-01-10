@@ -42,7 +42,7 @@ def plot_motion(data1):
     
 
     ax1.plot(t,e1)
-    ax2.plot(t,g1)
+    ax2.plot(t,np.sin(2*g1))
     ax3.plot(t,a1)
     ax4.plot(t,J1)
 
@@ -139,8 +139,8 @@ def plot_compare_motion(data1,data2):
     ax2.set_ylabel(r'$\sin (2\gamma)$', fontsize = fs)
     ax3.set_ylabel(r'$a$ [mAU]', fontsize = fs)
     
-    
-    lim = 0.024
+    print ('LIM CHANGES')
+    lim = 0.025
     ax5.set_ylim(-lim,lim)
     ax6.set_ylim(-lim,lim)
     ax7.set_ylim(-lim,lim)
@@ -180,8 +180,12 @@ def differences(data,data1,ax):
     
     de = (data[:,1] - data1[:,1]) / data1[:,1]
     
-    dg = (np.sin(data[:,2]) - np.sin(data1[:,2])) #/ np.sin(data1[:,2])
-    #dg = (data[:,2] - data1[:,2]) #/ np.sin(data1[:,2])
+    #dg = (np.sin(data[:,2]) - np.sin(data1[:,2])) #/ np.sin(data1[:,2])
+    dg = (data[:,2] - data1[:,2]) / data1[:,2]
+    
+    print (data[:,2])
+    print (data1[:,2])
+    print (dg)
     
           
     da = (data[:,3] - data1[:,3]) / data1[:,3]
@@ -349,11 +353,53 @@ def extract(t,f):
     
     
     
+def compare_GW(data1,data2):    
     
     
+    fig = plt.figure(figsize=(24,10))
+    ax1 = plt.subplot2grid((2,2), (0,0))
+    ax2 = plt.subplot2grid((2,2), (1,0), sharex=ax1)
+    
+   
     
     
+    tyear = data1[:,0] / (365*24*3600)
+    hp1 = data1[:,1]
+    hc1 = data1[:,2]
+    hp2 = data2[:,1]
+    hc2 = data2[:,2]
     
+    dh_plus = abs((hp1 - hp2)/hp1)
+    dh_cross = abs((hc1 - hc2)/hc1)
+    
+    ax1.plot(tyear,dh_plus, c='C0')
+    ax2.plot(tyear,dh_plus,c='C1')
+
+    
+
+    
+    fs = 25
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif')
+    
+
+
+
+
+    ax1.tick_params(axis='both', which='major', labelsize=fs)
+    ax2.tick_params(axis='both', which='major', labelsize=fs)
+    
+
+
+    ax2.set_xlabel('t [years]',fontsize=fs)
+
+    ax1.set_ylabel('$dh_{+} $', fontsize = fs)
+    ax2.set_ylabel('$dh_{\times} $', fontsize = fs)
+    
+    ax1.set_yscale('log')
+    ax2.set_yscale('log')
+
+    ax1.set_xlim(0.09,0.11)
     
     
 def plot_GW(data1,f1):
@@ -374,6 +420,11 @@ def plot_GW(data1,f1):
     torb = data1[:,0] * f1
     hplus = data1[:,1]
     hcross = data1[:,2]
+    
+    
+    print ('Max h plus =', max(hplus) )
+    ax1.axhline(1.2623854965230435e-21, linestyle='--')
+    
     
     ax1.plot(tyear,hplus, c='C0')
     ax2.plot(tyear,hcross,c='C1')
@@ -409,6 +460,9 @@ def plot_GW(data1,f1):
     ax2.set_ylabel(r'$h_{\times}$', fontsize = fs)
 
 
+    
+    
+    ax1.set_xlim(0.09,0.11)
         
     #f1 = orbital frequency
     t_upper = 5 
@@ -416,8 +470,8 @@ def plot_GW(data1,f1):
     plt.subplots_adjust(hspace=-0.01)
     
     
-    path = '/Users/tomkimpson/PhD/PI/PI_Work/Manuscript/figures/'
-    plt.savefig(path+'GW_canonical.png',dpi=300)
+    #path = '/Users/tomkimpson/PhD/PI/PI_Work/Manuscript/figures/'
+    #plt.savefig(path+'GW_canonical.png',dpi=300)
     
 
     
@@ -485,3 +539,55 @@ def plot_GW_frequency(f,h1,h2, S):
     
     
     
+
+    
+def plot_compare_motionSPLIT(numerical,sec1,sec2):
+    
+    fig = plt.figure(figsize=(24,10))
+    
+    ax1 = plt.subplot2grid((1,2), (0,0))
+    ax5 = plt.subplot2grid((1,2), (0,1))
+    year = (365*24*3600)
+    
+    #Plot the full numerical solution
+    ax1.plot(numerical[:,0]/year,numerical[:,1])
+    
+    #Plot section1
+    ax1.plot(sec1[:,0]/year,sec1[:,1])
+    
+    #Plot section2
+    ax1.plot(sec2[:,0]/year,sec2[:,1])
+    
+    
+    #Get the relative differences
+    
+    #section 1
+    lim = int(len(numerical)/2)
+    xN = numerical[0:lim+1,0]
+    yN = numerical[0:lim+1,1]
+    de = (yN - sec1[:,1]) / yN
+    ax5.plot(xN, de)
+    
+    #section 2
+    xN = numerical[lim:-1,0]
+    yN = numerical[lim:-1,1]
+    de = (yN - sec2[:,1]) / yN
+    ax5.plot(xN, de)
+
+    
+        
+
+    
+    
+  
+    #formatting
+    fs = 25
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif')
+    
+
+    ax1.tick_params(axis='both', which='major', labelsize=fs)
+    ax5.tick_params(axis='both', which='major', labelsize=fs)
+   
+
+

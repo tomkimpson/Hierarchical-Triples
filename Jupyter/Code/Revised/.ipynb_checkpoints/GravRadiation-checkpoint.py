@@ -48,6 +48,7 @@ def Gwaves(motion,constants):
     
     
     for n in np.arange(1,nmodes+1):
+        print ('Mode sum. n = ', n,nmodes)
         J_2 = sp.jv(n-2,n*e)
         J_1 = sp.jv(n-1,n*e) 
         Jn = sp.jv(n,n*e) 
@@ -129,7 +130,6 @@ def FT(data):
     
     dt = t[1] - t[0]
     fs = 1/dt
-    print (fs)
 
     #Get the frequencies
     f = np.fft.rfftfreq(t.size,dt)

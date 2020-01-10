@@ -107,7 +107,7 @@ gravitation -- pulsars -- black hole physics
 \section{Introduction}
 Intro...
 
-\noindent What are the waveforms from $\sim$ stellar mass BH binaries in hierarchical triple systems, as detected by LISA. Especially those which retain significant eccentricities.
+\noindent What are the waveforms from $\sim$ stellar mass BH binaries in hierarchical triple systems, as detected by LISA? Especially those which retain significant eccentricities.
 
 \section{Waveform model}
 We now discuss how to construct a waveform model for gravitational waves from BH binaries in the LISA band...
@@ -188,7 +188,6 @@ We use the subscripts $2$ denote variables which relate to the outer binary, and
 
 
 \subsection{Constructing a model}
-\textbf{Why did you propose these parametric solutions?}
 In constructing a model for the orbital evolution and gravitational waveform we take a semi-analytical approach that proceeds as follows:
 \begin{enumerate}
 	\item For a given system, integrate the equations of motion (Eq. \ref{eq:edot} - \ref{eq:Jdot} ) numerically, but coarsely. Whilst numerical, this step is not computationally taxing, taking $< 1s$. This produces a `training set' of data for the orbital elements. \newline 
@@ -202,7 +201,7 @@ In constructing a model for the orbital evolution and gravitational waveform we 
 	\begin{eqnarray}
 	a^3 da = \mathcal C u (e)^{-7/2} f(e) dt 
 	\end{eqnarray}
-	The RHS is easily integrable, but the LHS is not given the form of $e(t)$ and $f(e)$ (i.e. Mathematica fails to find a solution). The LHS becomes soluble if we perform a Taylor expansion of $u(e)^{-7/2}f(e)$ about the initial value of the eccentricity. Defining $\xi^N$ as the Taylor expansion to order $N$ of $u(e)^{-7/2}f(e)$, then the time-evolution of the semi-major axis is given as,
+	The LHS is easily integrable, but the RHS is not given the form of $e(t)$ and $f(e)$ (i.e. Mathematica fails to find a solution). The RHS becomes soluble if we perform a Taylor expansion of $u(e)^{-7/2}f(e)$ about the initial value of the eccentricity. Defining $\xi^N$ as the Taylor expansion to order $N$ of $u(e)^{-7/2}f(e)$, then the time-evolution of the semi-major axis is given as,
 	\begin{eqnarray}
 	a(t) = (4 \mathcal{C} \bar{\xi} + D)^{1/4}
 	\end{eqnarray}
@@ -228,7 +227,7 @@ In constructing a model for the orbital evolution and gravitational waveform we 
 \end{enumerate}
 
 \subsection{Evaluating the model}
-We consider a typical hierarchical triple system, of the sort that could be detectable with LISA. We take as our `canonical' system, a triple with $m_0 = m_1 = 30 M_{\odot}$, $m_2 = 10 M_{\odot}$, orbital frequency $f =10^{-3}$ Hz, $e_1 = 0.5$, $e_2 = 0.6$, and inclination $I = 60 \deg$. We quantify the separation of the inner and outer binary via the parameter $\beta = a_2/a_1$ and set $\beta = 5$.  The evolution of the orbital parameters as given by the analytical and numerical solutions is shown in Fig. \ref{fig:compare_canonical} along with the relative error. The error in the analytical solution as compared to the numerical solution is of order of a few percent for $e(t)$ and $\gamma(t)$ and is $\sim 10^{-6} \% $ for $a(t)$.
+We consider a typical hierarchical triple system, of the sort that could be detectable with LISA. We take as our `canonical' system, a triple with $m_0 = m_1 = 30 M_{\odot}$, $m_2 = 10 M_{\odot}$, orbital frequency $f =10^{-3}$ Hz, $e_1 = 0.5$, $e_2 = 0.6$, and inclination $I = 60 \deg$. We quantify the separation of the inner and outer binary via the parameter $\beta = a_2/a_1 = 5$.  The evolution of the orbital parameters as given by the analytical and numerical solutions is shown in Fig. \ref{fig:compare_canonical} along with the relative error. The error in the analytical solution as compared to the numerical solution is of order of a few percent for $e(t)$ and $\gamma(t)$ and is $\sim 10^{-6} \% $ for $a(t)$.
 
 
 
@@ -262,25 +261,22 @@ b_n = -n\zeta \sqrt{1-e^2}  [\bar{J}_{n-2}(ne) - 2\bar{J}_n(ne) + \bar{J}_{n+2}(
 c_n = 2 \zeta J_n(ne) \cos(n \Phi)
 \end{eqnarray}
 where $\bar{J}_n$ are Bessel functions of the first kind (as distinct from the angular momentum $J$)
-$\Phi$ is the mean anomaly and $\zeta = \mu (M \omega)^{2/3} / d$.  \newline 
+$\Phi$ is the mean anomaly, $\iota$ defines the inclination of the binary with respect to the observer,  $\zeta = \mu (M \omega)^{2/3} / d$, and $d$ si the distance between observer and source.  \newline 
 
 \noindent An example time-domain waveform for the canonical system is given in Fig \ref{fig:canonical_waveform}.
 \begin{figure*}
 	\includegraphics[width=1\textwidth]{GW_canonical1.png} \\ 
 	\medskip
-	\caption{GW waveform in the time domain for our canonical system as given by the analytical solution. WE have set the observer at $\iota = 20 \deg$ and the source at a distance of $1$ Mpc, and performed a summation over 20 modes. The right-hand column shows the waveform over shorter (orbital) timescales}
+	\caption{GW waveform in the time domain for our canonical system as given by our semi-analytical model. We have set the observer at $\iota = 20 \deg$ and the source at a distance of $1$ Mpc, and performed a summation over 20 modes. The right-hand column shows the waveform over shorter (orbital) timescales}
 	\label{fig:canonical_waveform}
 \end{figure*}
-We can also compare this with the waveform in the case where we have switched off the Kozai couplings ($\dot{E}_{KL} = \dot{\gamma}_KL = 0$). As shown in Fig \ref{fig:canonical_waveform_nokozai}, whilst the waveforms are similar on shorter, orbital timescales, over longer timescales the waveforms exhibit marked differences. \newline 
+We can also compare this with the waveform in the case where we have switched off the Kozai couplings ($\dot{e}_{KL} = \dot{\gamma}_{KL} = 0$). As shown in Fig \ref{fig:canonical_waveform_nokozai}, whilst the waveforms are similar on shorter, orbital timescales, over longer timescales the waveforms exhibit marked differences. \newline 
 \begin{figure*}
 	\includegraphics[width=1\textwidth]{GW_canonical_noKozai.png} \\ 
 	\medskip
-	\caption{semi-analytical solution to the GW waveforms without Kozai effects}
+	\caption{Semi-analytical solution to the GW waveforms without Kozai effects}
 	\label{fig:canonical_waveform_nokozai}
 \end{figure*}
-
-
-
 
 
 
@@ -337,7 +333,7 @@ and the acceleration noise is,
 P_{\rm acc} = (3 \times 10^{-15} \text{ m s}^{-2})^2 \left(1 + \left(\frac{0.4 \text{ mHz}}{f}\right)^2\right) \nonumber \\ 
 \left(1 + \left(\frac{f}{0.4 \text{ mHz}}\right)^4\right) \text{ Hz}^{-1} \ .
 \end{align}
-In addition to the instrumental noise, there is also an additional non-stationary noise contribution from the population of compact galactic binaries. This noise can be well described by the parametric function \citep{Cornish2017}
+In addition to the instrumental noise, there is also an additional non-stationary noise contribution from the population of compact galactic binaries. This noise can be well described by the parametric function,
 \begin{align}
 S_c(f) = A f^{-7/3} e^{-f^{\alpha} + \beta f \sinh(\kappa f)} \left[ 1 + \tanh (\gamma (f_k - f))\right] \text{Hz} ^{-1}
 \end{align}
@@ -374,7 +370,7 @@ and the full LISA sensitivity curve in terms of this characteristic strain is pr
 \end{figure}
 
 \subsection{Overlaps}
-For our canonical system evaluated over 0.1 years at a sampling frequency of 0.1 Hz,the overlap is $\mathcal{O} = 0.9999648638407087$
+For our canonical system evaluated over 0.1 years at a sampling frequency of 0.1 Hz,the overlap is $\mathcal{O} = 0.9999648638407087$. The signal in the frequency regime from both the full numerical solution and our semi-analytical model is presented in Fig \ref{fig:overlap}.
 
 
 
@@ -382,7 +378,7 @@ For our canonical system evaluated over 0.1 years at a sampling frequency of 0.1
 
 \begin{figure}
 	\includegraphics[width=\columnwidth]{GW_overlap.png}
-	\caption{}
+	\caption{Waveform in the frequency domain for both the full numerical solution and our semi-analytical model.}
 	\label{fig:overlap}
 \end{figure}
 
