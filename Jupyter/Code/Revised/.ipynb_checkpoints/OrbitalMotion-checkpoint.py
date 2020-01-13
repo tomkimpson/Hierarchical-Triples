@@ -127,14 +127,12 @@ def RungeKutta(yn,const,fs,Tint):
     
     #Setup timing precision
     h = 1/fs
-    Ts = Tint*365*24*3600
-    trange = np.arange(0,Ts,h)
-    tfinal = trange[-1]    
-    print ('Final t = ', tfinal)
-    t = 0
-    nsteps = int(tfinal*fs) + 1
-
+    Ts = Tint*365*24*3600 
+    print ('Final t = ', Ts)
     
+    nsteps = int(Ts*fs) + 1
+
+    t = 0
     #Define output array
     out = np.zeros((nsteps,5)) #t,e,gamma,a, J1
     counter = 0
@@ -145,7 +143,7 @@ def RungeKutta(yn,const,fs,Tint):
     out[counter,4] = yn[3] 
     counter = counter + 1
     
-    while t < tfinal:
+    while t < Ts:
 
         
         k1 = h * derivs(yn,const)
@@ -160,16 +158,20 @@ def RungeKutta(yn,const,fs,Tint):
     
         t = t + h
         
-        if counter <= nsteps-1:
-            out[counter,0] = t
-            out[counter,1] = yn[0]
-            out[counter,2] = yn[1]  
-            out[counter,3] = yn[2] 
-            out[counter,4] = yn[3] 
+       #Write to array
+        out[counter,0] = t
+        out[counter,1] = yn[0]
+        out[counter,2] = yn[1]  
+        out[counter,3] = yn[2] 
+        out[counter,4] = yn[3] 
         
         
-            counter = counter + 1    
+        counter = counter + 1    
 
+            
+    #cropped = out[:counter,:]
+    
+    print ('Finised numericals.', t,Ts,out[-1,0],h)        
     return out
     
     
@@ -208,11 +210,11 @@ def constants(m0,m1,m2,e2,a2,I):
     Lambda = 3* (G*M)**(3/2)/c**2
         
         
-    print ('K = ', K)
-    print ('C = ', C)
-    print ('lambda = ', Lambda,G, c, m0,m1)
-    print ('I = ', I)
-    print ('J2 = ', J2)
+    #print ('K = ', K)
+    #print ('C = ', C)
+    #print ('lambda = ', Lambda,G, c, m0,m1)
+    #print ('I = ', I)
+    #print ('J2 = ', J2)
 
         
     return np.array((K, J2, C,A,eta,I,Lambda)) 
@@ -235,7 +237,7 @@ def extract(data,index):
     print ('extract ecc')
     
     sigma = np.ones(len(t))
-    sigma[[0, -1]] = 0.01
+    sigma[[0, -1]] = 1e-1 #weight the end pointd heavily
     
     func = doube_trig_function
     offset = (f.max() + f.min()) / 2
@@ -278,10 +280,10 @@ def analytical_split(fit_data,t,const):
     tstart = time.time()
     A,B,omega,offset = extract(fit_data,1)
     tend = time.time()
-    print ('The eccentricity fit completed in', tend-tstart,'seconds')
+    #print ('The eccentricity fit completed in', tend-tstart,'seconds')
     OmT = omega*t
     e_approx = A*np.sin(OmT) +B*np.cos(OmT)  + offset 
-    print ('Calculated e(t) to high resolution')
+    #print ('Calculated e(t) to high resolution')
     
  
 
@@ -295,7 +297,7 @@ def analytical_split(fit_data,t,const):
     
     normalisation = fit_data[0,3]**4 / 4 - C*F0
     
-    print ('Now calculating a(t) to high resolution')
+    #print ('Now calculating a(t) to high resolution')
 
     a_approx = (4*C*Fbar + 4*normalisation)**(1/4)
     
@@ -323,17 +325,17 @@ def analytical_split(fit_data,t,const):
     tstart = time.time()
     B_A, B_omega, B_offset, B_D,gamma_f, gamma_g,H = extract2(t1,gderiv)
     tend = time.time()
-    print ('The gamma derivative fit completed in', tend-tstart,'seconds')
+    #print ('The gamma derivative fit completed in', tend-tstart,'seconds')
     #We can directly integrate this function
     integration_constant = g1[0] - integral(B_A, B_omega, B_offset, B_D,gamma_f, gamma_g,H,t[0]) 
     
-    print ('Now calculating gamma(t) to high resolution')
+    #print ('Now calculating gamma(t) to high resolution')
     g_approx = integral(B_A, B_omega, B_offset, B_D,gamma_f, gamma_g,H,t) + integration_constant
     
 
     
-    print ('gN=', g1[0], g1[-1])
-    print ('gA=', g_approx[0], g_approx[-1])
+    #print ('gN=', g1[0], g1[-1])
+    #print ('gA=', g_approx[0], g_approx[-1])
     
     #g_approx = extract3(fit_data,2,t) #linear fit to gamma
     
