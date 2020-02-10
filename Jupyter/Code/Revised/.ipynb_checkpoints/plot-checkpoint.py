@@ -11,6 +11,160 @@ Msolar = 2e30
 AU = 1.49e11 #meters
 pc = 3.086e16 #parsec in m
 
+
+def plot_motion_and_derivatives(motion,const):
+    
+    
+    
+    print ('Plotting the orbital parameter evolution')
+    
+    
+    fig = plt.figure(figsize=(24,20))
+    ax1 = plt.subplot2grid((4,2), (0,0))
+    ax2 = plt.subplot2grid((4,2), (1,0), sharex=ax1)
+    ax3 = plt.subplot2grid((4,2), (2,0),sharex=ax1)
+    ax4 = plt.subplot2grid((4,2), (3,0), sharex=ax1)
+    
+    ax5 = plt.subplot2grid((4,2), (0,1))
+    ax6 = plt.subplot2grid((4,2), (1,1), sharex=ax5)
+    ax7 = plt.subplot2grid((4,2), (2,1),sharex=ax5)
+    #ax8 = plt.subplot2grid((4,2), (3,1), sharex=ax5)
+    
+    
+
+    #Motion
+    t = motion[:,0] / (365*24*3600)
+    e1 = motion[:,1]
+    g1 = motion[:,2]
+    a1 = motion[:,3] #/ data1[0,3]
+    J1 = motion[:,4] #/ data1[0,4]
+    
+    #Derivatives
+    #-edot
+    u = 1-e1**2
+    C = const[2]
+    A = const[3]
+    eKL = A*e1*u*a1**2 * np.sin(2*g1)/J1
+    eGW = 19/12 * C * a1**(-4) * e1 * u**(-5/2)*(1+121/304 * e1**2)
+    edot = eKL + eGW
+    
+    #-gdot
+    K = const[0]
+    J2 = const[1]
+    C = const[2]
+    A = const[3]
+    I = const[5]
+    Lambda = const[6]
+    
+    part1 = 2*u - 5*(u-np.cos(I)**2)*np.sin(g1)**2
+    part2 = np.cos(I)*(u + 5*e1**2 * np.sin(g1)**2)
+    
+    gKL = 2*K*a1**2*(part1/J1 + part2/J2)
+    gPN = Lambda * a1**(-2.5)/u
+    
+    
+    gdot = gKL + gPN
+    
+    #-adot
+    C = const[2]
+    fe = 1 + 73/24 * e1**2 + 37/96 * e1**4  
+    adot = C*a1**(-3) *u**(-7/2) * fe
+    
+    #-Jdot
+    eta = const[4]
+    he = 1 + 7/8 * e1**2
+    Jdot = eta*a1**(-7/2)*u**(-2) * he
+ 
+    
+    
+    
+    #also get the orbital frequency - assumes total mass is 60 solar masses
+    f1 = np.sqrt(G*60*Msolar *a1**(-3) / (4*np.pi**2))
+    
+    
+    
+    #Plot it all
+    
+    
+    
+    maxe = max(e1)
+    mine = min(e1)
+    ax1.axhline(maxe,linestyle='--')
+    ax1.axhline(mine,linestyle='--')
+    print ('E limits =', maxe,mine, maxe-mine)
+
+    ax1.plot(t,e1)
+    ax2.plot(t,np.sin(2*g1))
+    ax3.plot(t,a1/a1[0])
+    ax4.plot(t,f1)
+    #ax4.plot(t,J1/J1[0])
+    
+    ax5.plot(t,edot)
+    ax6.plot(t,gdot)
+    ax7.plot(t,adot)
+    #ax8.plot(t,Jdot)
+
+
+    
+    fs = 25
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif')
+    
+
+    plt.setp(ax1.get_xticklabels(), visible=False)
+    plt.setp(ax2.get_xticklabels(), visible=False)
+    plt.setp(ax3.get_xticklabels(), visible=False)
+    plt.setp(ax5.get_xticklabels(), visible=False)
+    plt.setp(ax6.get_xticklabels(), visible=False)
+    plt.setp(ax7.get_xticklabels(), visible=False)
+
+
+    ax1.tick_params(axis='both', which='major', labelsize=fs)
+    ax2.tick_params(axis='both', which='major', labelsize=fs)
+    ax3.tick_params(axis='both', which='major', labelsize=fs)
+    ax4.tick_params(axis='both', which='major', labelsize=fs)
+    
+    
+    ax5.tick_params(axis='both', which='major', labelsize=fs)
+    ax6.tick_params(axis='both', which='major', labelsize=fs)
+    ax7.tick_params(axis='both', which='major', labelsize=fs)
+   # ax8.tick_params(axis='both', which='major', labelsize=fs)
+   #
+   
+
+    ax4.set_xlabel('t [years]',fontsize=fs)
+
+
+
+
+    ax1.set_ylabel('$e$', fontsize = fs)
+    ax2.set_ylabel(r'$\sin( 2 \gamma)$', fontsize = fs)
+    ax3.set_ylabel(r'$a$ [AU]', fontsize = fs)
+    ax4.set_ylabel(r'$f$ [Hz]', fontsize = fs)
+        
+
+    ax5.set_ylim(-0.00001,0.000015)
+    ax3.set_ylim(0,1.1)
+    
+    ax4.set_yscale('log')
+    
+    #ax1.set_xlim(-0.001, 0.1)
+    #ax5.set_xlim(-0.001, 0.1)
+
+    ax6.set_ylim(0.00001,0.00005)
+    
+    plt.subplots_adjust(hspace=-0.01)
+
+
+
+
+
+
+
+
+
+
+
 def plot_motion(data1):
     
     
@@ -31,7 +185,7 @@ def plot_motion(data1):
     t = data1[:,0] / (365*24*3600)
     e1 = data1[:,1]
     g1 = data1[:,2]
-    a1 = data1[:,3] / AU
+    a1 = data1[:,3] / data1[0,3]
     J1 = data1[:,4] / data1[0,4]
     
     
@@ -39,7 +193,7 @@ def plot_motion(data1):
     mine = min(e1)
     ax1.axhline(maxe,linestyle='--')
     ax1.axhline(mine,linestyle='--')
-    
+    print ('E limits =', maxe,mine, maxe-mine)
 
     ax1.plot(t,e1)
     ax2.plot(t,np.sin(2*g1))
@@ -69,12 +223,12 @@ def plot_motion(data1):
 
 
     ax1.set_ylabel('$e$', fontsize = fs)
-    ax2.set_ylabel(r'$\gamma$', fontsize = fs)
+    ax2.set_ylabel(r'$\sin( 2 \gamma)$', fontsize = fs)
     ax3.set_ylabel(r'$a$ [AU]', fontsize = fs)
     ax4.set_ylabel(r'$J_1$', fontsize = fs)
         
 
-     
+    #ax1.set_xlim(-0.01,0.2)
     
     plt.subplots_adjust(hspace=-0.01)
     

@@ -237,7 +237,7 @@ def doube_trig_function(t,A,B,omega,offset):
 def extract(data,index):
     t = data[:,0]
     f = data[:,index] 
-    print ('extract ecc')
+    #print ('extract ecc')
 
     
     sigma = np.ones(len(t))
@@ -257,7 +257,7 @@ def extract(data,index):
    
         
     popt, pcov = curve_fit(func, t,f,p0=p0,sigma=sigma)
-    print ('popt = ', popt)
+    #print ('popt = ', popt)
 
 
     return popt
@@ -284,15 +284,15 @@ def analytical_split(fit_data,t,const):
     tstart = time.time()
     
     eMID = (max(fit_data[:,1]) + min(fit_data[:,1]))/2
-    print ('emid = ', eMID)
+    #print ('emid = ', eMID)
    
     
     A,B,omega,offset = extract(fit_data,1)
     tend = time.time()
-    print ('The eccentricity fit completed in', tend-tstart,'seconds')
+    #print ('The eccentricity fit completed in', tend-tstart,'seconds')
     OmT = omega*t
     e_approx = A*np.sin(OmT) +B*np.cos(OmT)  + offset 
-    print ('Calculated e(t) to high resolution')
+    #print ('Calculated e(t) to high resolution')
     
  
 
@@ -306,10 +306,10 @@ def analytical_split(fit_data,t,const):
     
     normalisation = fit_data[0,3]**4 / 4 - C*F0
     
-    print ('Now calculating a(t) to high resolution')
+    #print ('Now calculating a(t) to high resolution')
 
     a_approx = (4*C*Fbar + 4*normalisation)**(1/4)
-    print ('Completed')
+    #print ('Completed')
     
 
     
@@ -334,13 +334,13 @@ def analytical_split(fit_data,t,const):
     tstart = time.time()
     B_A, B_omega, B_offset, B_D,gamma_f, gamma_g,H = extract2(t1,gderiv)
     tend = time.time()
-    print ('The gamma derivative fit completed in', tend-tstart,'seconds')
+    #print ('The gamma derivative fit completed in', tend-tstart,'seconds')
     #We can directly integrate this function
     integration_constant = g1[0] - integral(B_A, B_omega, B_offset, B_D,gamma_f, gamma_g,H,t[0]) 
     
-    print ('Now calculating gamma(t) to high resolution')
+    #print ('Now calculating gamma(t) to high resolution')
     g_approx = integral(B_A, B_omega, B_offset, B_D,gamma_f, gamma_g,H,t) + integration_constant
-    print ('Completed')
+    #print ('Completed')
 
     
     #print ('gN=', g1[0], g1[-1])
@@ -386,7 +386,7 @@ def AdvancedTrig(t,B_A, B_omega, B_offset, B_D,gamma_f, gamma_g,H):
     return H + B*s2g
     
 def extract2(t,f):
-    print ('Extract for double trig func')
+    #print ('Extract for double trig func')
     func = AdvancedTrig
     
     H= 3.631335880308346e-05
@@ -454,5 +454,5 @@ def extract3(data,index,t1):
          )
         
     popt, pcov = curve_fit(func, t,f,p0=p0)
-    print ('popt for gamma:', popt)
+    #print ('popt for gamma:', popt)
     return func(t1, *popt)

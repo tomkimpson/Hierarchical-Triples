@@ -293,7 +293,6 @@ def plot_compare_motion(data1,data2):
     ax2.set_ylabel(r'$\sin (2\gamma)$', fontsize = fs)
     ax3.set_ylabel(r'$a$ [mAU]', fontsize = fs)
     
-    print ('LIM CHANGES')
     lim = 0.025
     ax5.set_ylim(-lim,lim)
     ax6.set_ylim(-lim,lim)
@@ -337,17 +336,11 @@ def differences(data,data1,ax):
     #dg = (np.sin(data[:,2]) - np.sin(data1[:,2])) #/ np.sin(data1[:,2])
     dg = (data[:,2] - data1[:,2]) / data1[:,2]
     
-    print (data[:,2])
-    print (data1[:,2])
-    print (dg)
+   
     
           
     da = (data[:,3] - data1[:,3]) / data1[:,3]
-    
-    print ('The average percentage error in a was:', np.mean(da)*100)
-    
-          
-          
+      
  
     
     
