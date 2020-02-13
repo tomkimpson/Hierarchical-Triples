@@ -189,6 +189,8 @@ def plot_motion(data1):
     J1 = data1[:,4] / data1[0,4]
     
     
+    
+    
     maxe = max(e1)
     mine = min(e1)
     ax1.axhline(maxe,linestyle='--')
