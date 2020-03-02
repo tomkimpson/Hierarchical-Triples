@@ -157,8 +157,106 @@ def plot_motion_and_derivatives(motion,const):
 
 
 
+    
+
+def plot_both(data1,data2):
+    
+    
+    
+    print ('Plotting the eccentricity evolution')
+    
+    
+    fig = plt.figure(figsize=(14,10))
+    ax1 = plt.subplot2grid((1,1), (0,0))    
+
+    
+    t = data1[:,0] #/ (365*24*3600)
+    e1 = data1[:,1]
+    e2 = data2[:,1]
+    
+    
+    maxe = max(e1)
+    mine = min(e1)
+    ax1.axhline(maxe,linestyle='--')
+    ax1.axhline(mine,linestyle='--')
+    print ('E limits =', maxe,mine, maxe-mine)
+
+    ax1.plot(t,e1)
+    ax1.scatter(t,e1)
+    ax1.plot(t,e2)
+    ax1.scatter(t,e2)
+    
+
+    
+    fs = 25
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif')
+    
 
 
+
+    ax1.tick_params(axis='both', which='major', labelsize=fs)
+
+   
+
+    ax1.set_xlabel('$x$',fontsize=fs)
+
+
+
+
+    ax1.set_ylabel('$y$', fontsize = fs)
+    
+    plt.savefig('example.png', dpi=300)    
+    
+    
+    
+    
+
+def plot_eccentricity(data1):
+    
+    
+    
+    print ('Plotting the eccentricity evolution')
+    
+    
+    fig = plt.figure(figsize=(14,10))
+    ax1 = plt.subplot2grid((1,1), (0,0))    
+
+    
+    t = data1[:,0] #/ (365*24*3600)
+    e1 = data1[:,1]
+    
+    
+    maxe = max(e1)
+    mine = min(e1)
+    ax1.axhline(maxe,linestyle='--')
+    ax1.axhline(mine,linestyle='--')
+    print ('E limits =', maxe,mine, maxe-mine)
+
+    ax1.plot(t,e1)
+    
+
+    
+    fs = 25
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif')
+    
+
+
+
+    ax1.tick_params(axis='both', which='major', labelsize=fs)
+
+   
+
+    ax1.set_xlabel('$x$',fontsize=fs)
+
+
+
+
+    ax1.set_ylabel('$y$', fontsize = fs)
+    
+    plt.savefig('example.png', dpi=300)
+    
 
 
 
@@ -187,6 +285,8 @@ def plot_motion(data1):
     g1 = data1[:,2]
     a1 = data1[:,3] / data1[0,3]
     J1 = data1[:,4] / data1[0,4]
+    
+    
     
     
     maxe = max(e1)
@@ -493,21 +593,12 @@ def extract(t,f):
 #---------------------
     
     
-    
-    
-    
-    
-    
-    
-    
 def compare_GW(data1,data2):    
     
     
     fig = plt.figure(figsize=(24,10))
     ax1 = plt.subplot2grid((2,2), (0,0))
     ax2 = plt.subplot2grid((2,2), (1,0), sharex=ax1)
-    
-   
     
     
     tyear = data1[:,0] / (365*24*3600)
@@ -551,112 +642,19 @@ def compare_GW(data1,data2):
     
 def plot_GW(data1,f1):
     
-    print ('Plotting the GW')
-    
+    print ('IN')
     fig = plt.figure(figsize=(24,10))
     ax1 = plt.subplot2grid((2,2), (0,0))
     ax2 = plt.subplot2grid((2,2), (1,0), sharex=ax1)
     
-    ax3 = plt.subplot2grid((2,2), (0,1))
-    ax4 = plt.subplot2grid((2,2), (1,1),sharex=ax3)
-    
-    
-  
-    
     tyear = data1[:,0] / (365*24*3600)
-    torb = data1[:,0] * f1
     hplus = data1[:,1]
-    hcross = data1[:,2]
-    
-    
-    print ('Max h plus =', max(hplus) )
-    ax1.axhline(1.2623854965230435e-21, linestyle='--')
-    
+    hcross = data1[:,2]   
     
     ax1.plot(tyear,hplus, c='C0')
     ax2.plot(tyear,hcross,c='C1')
-
-    ax3.plot(torb,hplus,c='C0')
-    ax4.plot(torb,hcross,c='C1')
     
-
-    
-    fs = 25
-    plt.rc('text', usetex=True)
-    plt.rc('font', family='serif')
-    
-
-    plt.setp(ax1.get_xticklabels(), visible=False)
-    plt.setp(ax3.get_xticklabels(), visible=False)
-
-
-
-    ax1.tick_params(axis='both', which='major', labelsize=fs)
-    ax2.tick_params(axis='both', which='major', labelsize=fs)
-    ax3.tick_params(axis='both', which='major', labelsize=fs)
-    ax4.tick_params(axis='both', which='major', labelsize=fs)
-   
-
-
-    ax2.set_xlabel('t [years]',fontsize=fs)
-    ax4.set_xlabel(r'$N_{orbits}$',fontsize=fs)
-
-
-
-    ax1.set_ylabel('$h_{+} $', fontsize = fs)
-    ax2.set_ylabel(r'$h_{\times}$', fontsize = fs)
-
-
-    
-    
-    ax1.set_xlim(0.09,0.11)
-        
-    #f1 = orbital frequency
-    t_upper = 5 
-    ax3.set_xlim(0,t_upper)
-    plt.subplots_adjust(hspace=-0.01)
-    
-    
-    #path = '/Users/tomkimpson/PhD/PI/PI_Work/Manuscript/figures/'
-    #plt.savefig(path+'GW_canonical.png',dpi=300)
-    
-
-    
-    #Save figures
-    #extent1 = ax1.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
-    #extent2 = ax2.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
-    
-    #points = extent1.get_points()
-    #x0 = points[0][0] * 0.5
-    #x1 = points[1][0] *1.05
-    #y1 = points[1][1]
-    #points = extent2.get_points()
-    #y0 = points[0][1]
-    
-    
-    #my_blit_box = Bbox(np.array([[x0,y0],[x1,y1]]))
-
-    #plt.savefig('../../Manuscript/figures/GW_WaveformsLONG.png', dpi=300,bbox_inches=my_blit_box.expanded(1.0, 1.25))
-
-    
-    
-    #ax3.set_ylabel('$h_{+} $', fontsize = fs)
-    #ax4.set_ylabel(r'$h_{\times}$', fontsize = fs)
-    #extent1 = ax3.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
-    #extent2 = ax4.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
-    
-    #points = extent1.get_points()
-    #x0 = points[0][0] * 0.9
-    #x1 = points[1][0] *1.05
-    #y1 = points[1][1]
-    #points = extent2.get_points()
-    #y0 = points[0][1]
-    
-    
-    #my_blit_box = Bbox(np.array([[x0,y0],[x1,y1]]))
-
-    #plt.savefig('../../Manuscript/figures/GW_WaveformsSHORT.png', dpi=300,bbox_inches=my_blit_box.expanded(1.0, 1.25))
-    
+    print ('OUT')
     
     
 def plot_GW_frequency(f,h1,h2, S):
